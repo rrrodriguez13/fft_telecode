@@ -68,7 +68,7 @@ def plotter(data, fig, line, folder, prefix, track_files):
     plt.title(f'{title} Power Spectrum', fontsize=18, fontweight='bold') # sets title of subplot to filename
     fig.canvas.draw()
     fig.canvas.flush_events()
-   # plt.savefig(os.path.join(folder, f'{title}.png')) # saves plot
+    #plt.savefig(os.path.join(folder, f'{title}.png')) # saves plot
 
 
 
