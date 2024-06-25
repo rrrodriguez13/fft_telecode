@@ -1,7 +1,6 @@
 import argparse
 import os
 import ugradio
-
 import functions
 
 parser = argparse.ArgumentParser()
@@ -16,9 +15,8 @@ len_obs = int(args.len_obs)
 folder = args.folder
 
 if not os.path.exists(folder):
-	os.makedirs(folder)
+    os.makedirs(folder)
 
 sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=125.2e6, direct=False)
-
 
 functions.run_vis(sdr, prefix, folder)
