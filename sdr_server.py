@@ -16,6 +16,7 @@ def send_data(sock, addr):
             data = sdr.capture_data()
             if data.size > 0:
                 sock.sendto(data.tobytes(), addr)
+                print(f"Sent {len(data.tobytes())} bytes of data")
             else:
                 print("No data captured")
     except KeyboardInterrupt:

@@ -62,7 +62,7 @@ def plotter(pwr, fig, line):
 
 # Set up socket
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-    sock.settimeout(2)  # Set a timeout for receiving data
+    sock.settimeout(5)  # Set a timeout for receiving data
     sock.sendto(b'requesting data', (args.host, args.port))
     try:
         data = receive_data(sock)
