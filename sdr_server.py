@@ -24,7 +24,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     sock.bind(('0.0.0.0', args.port))
     print(f'Server listening on port {args.port}')
     while True:
-        message, addr = sock.recvfrom(4096)
-        if message == b'requesting data':
-            print('Connected by', addr)
-            send_data(sock, addr)
+        try:
+            message, addr = sock.recvfrom(4096)
+            if message == b'requesting data':
+                print('Connected by', addr)
+                send_data(sock, addr)
+        except socket.error as e:
+            print(f"Socket error: {e}")
