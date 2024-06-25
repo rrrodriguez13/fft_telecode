@@ -1,5 +1,5 @@
 import time
-from fft_telescope.code1.udp_script import send, receive
+from udp_script import send, receive
 
 def sender_main():
     UDP = send('172.21.80.1', 2001, '192.168.0.69', 2002, 900e6)
