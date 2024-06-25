@@ -16,16 +16,10 @@ freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq
 def receive_data(sock):
     data = b''
     while True:
-        try:
-            packet, _ = sock.recvfrom(4096)
-            if not packet:
-                break
-            data += packet
-        except socket.error as e:
-            print(f"Socket error: {e}")
+        packet, _ = sock.recvfrom(4096)
+        if not packet:
             break
-    if len(data) == 0:
-        raise ValueError("No data received from server")
+        data += packet
     return np.frombuffer(data, dtype=np.float32).reshape(-1, 2)
 
 def perform_power(signal):
@@ -62,14 +56,8 @@ def plotter(pwr, fig, line):
 
 # Set up socket
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-    sock.settimeout(5)  # Set a timeout for receiving data
     sock.sendto(b'requesting data', (args.host, args.port))
-    try:
-        data = receive_data(sock)
-        pwr = correlate(data)
-        fig, line = set_up_plot()
-        plotter(pwr, fig, line)
-    except socket.timeout:
-        print("Timed out waiting for data")
-    except ValueError as e:
-        print(e)
+    data = receive_data(sock)
+    pwr = correlate(data)
+    fig, line = set_up_plot()
+    plotter(pwr, fig, line)
