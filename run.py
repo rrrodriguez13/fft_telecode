@@ -1,8 +1,8 @@
 import time
-from udp_script import send, receive
+from fft_telescope.code1.udp_script import send, receive
 
 def sender_main():
-    UDP = send('10.32.92.216', 2001, '10.32.92.215', 2002, 900e6)
+    UDP = send('172.21.80.1', 2001, '192.168.0.69', 2002, 900e6)
     UDP.eth0()
     UDP.eth1()
     print('Everything initialized...')
@@ -18,7 +18,7 @@ def sender_main():
         print('done')
 
 def receiver_main():
-    UDP = receive('10.32.92.216', 2001)
+    UDP = receive('172.21.80.1', 2001)
     UDP.eth0()
     print('Everything Initialized...')
     try:
