@@ -13,10 +13,10 @@ sample_rate = 3.2e6
 center_freq = 125.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 
-def receive_data(conn):
+def receive_data(sock):
     data = b''
     while True:
-        packet = conn.recv(4096)
+        packet, _ = sock.recvfrom(4096)
         if not packet:
             break
         data += packet
@@ -55,10 +55,9 @@ def plotter(pwr, fig, line):
     fig.canvas.flush_events()
 
 # Set up socket
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((args.host, args.port))
-    print(f'Connected to server at {args.host}:{args.port}')
-    data = receive_data(s)
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+    sock.sendto(b'requesting data', (args.host, args.port))
+    data = receive_data(sock)
     pwr = correlate(data)
     fig, line = set_up_plot()
     plotter(pwr, fig, line)
