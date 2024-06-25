@@ -14,7 +14,10 @@ def send_data(sock, addr):
     try:
         while True:
             data = sdr.capture_data()
-            sock.sendto(data.tobytes(), addr)
+            if data.size > 0:
+                sock.sendto(data.tobytes(), addr)
+            else:
+                print("No data captured")
     except KeyboardInterrupt:
         print("Stopping server!")
         sdr.close()

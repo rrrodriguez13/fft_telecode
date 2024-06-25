@@ -24,6 +24,8 @@ def receive_data(sock):
         except socket.error as e:
             print(f"Socket error: {e}")
             break
+    if len(data) == 0:
+        raise ValueError("No data received from server")
     return np.frombuffer(data, dtype=np.float32).reshape(-1, 2)
 
 def perform_power(signal):
@@ -69,3 +71,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         plotter(pwr, fig, line)
     except socket.timeout:
         print("Timed out waiting for data")
+    except ValueError as e:
+        print(e)
