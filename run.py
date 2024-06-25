@@ -2,7 +2,7 @@ import time
 from udp_script import send, receive
 
 def sender_main():
-    UDP = send('172.21.80.1', 2001, '192.168.0.69', 2002, 900e6)
+    UDP = send('192.168.0.234', 2001, '192.168.0.123', 2002, 900e6)
     UDP.eth0()
     UDP.eth1()
     print('Everything initialized...')
@@ -18,7 +18,7 @@ def sender_main():
         print('done')
 
 def receiver_main():
-    UDP = receive('172.21.80.1', 2001)
+    UDP = receive('192.168.0.234', 2001)
     UDP.eth0()
     print('Everything Initialized...')
     try:
