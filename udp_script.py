@@ -52,7 +52,8 @@ class receive:
         self.HOST = HOST
         self.PORT = PORT
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
+        self.s.settimeout(10)
+
     def eth0(self):
         self.s.bind((self.HOST, self.PORT))
         print('Setting up connection...')
