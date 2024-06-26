@@ -37,5 +37,5 @@ def receiver_main():
 
 if __name__ == "__main__":
     # Uncomment the appropriate function depending on whether you want to send or receive data
-    sender_main()
-    #receiver_main()
+    #sender_main()
+    receiver_main()

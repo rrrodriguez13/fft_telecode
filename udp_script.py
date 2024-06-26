@@ -4,13 +4,13 @@ import sys
 import threading
 import time
 
-MAX_UDP_PACKET_SIZE = 65507  # Maximum safe UDP packet size
+MAX_UDP_PACKET_SIZE = 1024  # Maximum safe UDP packet size
 
 class send:
     def __init__(self, HOST, PORT):
         self.HOST = HOST
         self.PORT = PORT
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     def stop(self):
         self.s.close()
@@ -21,15 +21,15 @@ class send:
         
     
     def send_data(self, data):
-        chunks = data.reshape(-1, MAX_UDP_PACKET_SIZE)
+        chunks = np.reshape(data, (-1, MAX_UDP_PACKET_SIZE))
         for chunk in chunks:
-            self.s.sendto(chunk, (self.HOST, self.PORT))
+            self.s.sendall(chunk)
 
 class receive:
     def __init__(self, HOST, PORT):
         self.HOST = HOST
         self.PORT = PORT
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     def eth0(self):
         self.s.bind((self.HOST, self.PORT))
