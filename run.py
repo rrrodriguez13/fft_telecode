@@ -6,7 +6,7 @@ def capture_data(size):
     return [0] * size
 
 def sender_main():
-    UDP = send('192.168.0.234', 2001)
+    UDP = send('192.168.0.123', 2001)
     UDP.eth0()
     print('Everything initialized...')
     try:
