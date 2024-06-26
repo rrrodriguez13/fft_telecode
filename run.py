@@ -6,16 +6,16 @@ def capture_data(size):
     return [0] * size
 
 def sender_main():
-    UDP = send('192.168.0.123', 2001)
+    UDP = send('192.168.0.123', 6371)
     UDP.eth0()
     print('Everything initialized...')
     try:
         print('Starting loop...')
         while True:
-            data = capture_data(MAX_UDP_PACKET_SIZE)#*3
+            data = capture_data(3*MAX_UDP_PACKET_SIZE)
             UDP.send_data(data)
             time.sleep(1)
-            print("sent data")
+            print("Sent data!")
     except KeyboardInterrupt:
         UDP.stop()
         print('UDP Stopped...')
@@ -23,7 +23,7 @@ def sender_main():
         print('done')
 
 def receiver_main():
-    UDP = receive('192.168.0.234', 2001)
+    UDP = receive('192.168.0.234', 6371)
     UDP.eth0()
     print('Everything Initialized...')
     try:
