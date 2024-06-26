@@ -4,7 +4,7 @@ import sys
 import threading
 import time
 
-MAX_UDP_PACKET_SIZE = 2048 // 3  # Maximum safe UDP packet size
+MAX_UDP_PACKET_SIZE = 2048 # Maximum safe UDP packet size
 
 class send:
     def __init__(self, HOST, PORT):
@@ -52,17 +52,19 @@ class receive:
         self.HOST = HOST
         self.PORT = PORT
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.settimeout(10)
+        self.s.settimeout(5)
 
     def eth0(self):
         self.s.bind((self.HOST, self.PORT))
+        self.s.listen()
         print('Setting up connection...')
     
     def set_up(self):
         try:
             print('Waiting to receive data...')
-            data, addr = self.s.recvfrom(MAX_UDP_PACKET_SIZE)
-            print(f'Received data: {len(data)} bytes from {addr}')
+            data = self.s.recv(MAX_UDP_PACKET_SIZE)
+            #print(f'Received data: {len(data)} bytes from {addr}')
+            print('Received data!')
         except socket.timeout:
             print('No data received, waiting for next packet...')
     

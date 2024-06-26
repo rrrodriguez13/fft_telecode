@@ -6,7 +6,7 @@ def capture_data(size):
     return [0] * size
 
 def sender_main():
-    UDP = send('192.168.0.123', 6371)
+    UDP = send('192.168.0.235', 6371)
     UDP.eth0()
     print('Everything initialized...')
     try:
@@ -20,10 +20,10 @@ def sender_main():
         UDP.stop()
         print('UDP Stopped...')
     finally:
-        print('done')
+        print('Done.')
 
 def receiver_main():
-    UDP = receive('192.168.0.234', 6371)
+    UDP = receive('192.168.0.236', 6371)
     UDP.eth0()
     print('Everything Initialized...')
     try:
@@ -33,7 +33,7 @@ def receiver_main():
         UDP.stop()
         print('UDP Stopped...')
     finally:
-        print('done')
+        print('Done.')
 
 if __name__ == "__main__":
     # Uncomment the appropriate function depending on whether you want to send or receive data
