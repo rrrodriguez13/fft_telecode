@@ -12,7 +12,7 @@ def sender_main():
     try:
         print('Starting loop...')
         while True:
-            data = capture_data(3*MAX_UDP_PACKET_SIZE)
+            data = capture_data(MAX_UDP_PACKET_SIZE)#*3
             UDP.send_data(data)
             time.sleep(1)
             print("sent data")
