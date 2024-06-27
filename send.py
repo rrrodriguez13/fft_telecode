@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from functions import send, MAX_UDP_PACKET_SIZE
 
 LAPTOP_IP = "192.168.0.234"

@@ -70,7 +70,7 @@ def run_vis(sdr, prefix, folder):
             
             if len(data) > 10:
                 track_files += 1
-                #writeto(data, prefix, folder, track_files)
+                writeto(data, prefix, folder, track_files)
                 plotter(data[-1], fig, line, folder, prefix, track_files) # Pass the last batch of data to the plotter
                 print(f'file number {track_files} has been written successfully!')
                 data = []

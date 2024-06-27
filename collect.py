@@ -4,8 +4,8 @@ import ugradio
 import functions
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--prefix', '-p')
-parser.add_argument('--len_obs', '-l')
+parser.add_argument('--prefix', '-p', default='data')
+parser.add_argument('--len_obs', '-l', default='60')
 parser.add_argument('--folder', '-f', default='output')
 
 args = parser.parse_args()
