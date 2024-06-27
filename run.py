@@ -1,13 +1,18 @@
 import time
 from udp_script import send, receive, MAX_UDP_PACKET_SIZE
 
+LAPTOP_IP = "192.168.0.234"
+RPI_IP = "192.168.0.235"
+PORT = 6371
+
 def capture_data(size):
     # send a bunch of zeros for now, replace with actual data later
     return [0] * size
 
+# going on the pi
 def sender_main():
-    UDP = send('192.168.0.235', 6371)
-    UDP.eth0()
+    UDP = send(LAPTOP_IP, PORT)
+    #UDP.eth0()
     print('Everything initialized...')
     try:
         print('Starting loop...')
@@ -23,7 +28,7 @@ def sender_main():
         print('Done.')
 
 def receiver_main():
-    UDP = receive('192.168.0.236', 6371)
+    UDP = receive(LAPTOP_IP, PORT)
     UDP.eth0()
     print('Everything Initialized...')
     try:
