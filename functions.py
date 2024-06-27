@@ -5,7 +5,7 @@ import os
 
 num_samples = 2048
 sample_rate = 3.2e6
-center_freq=125.2e6
+center_freq = 125.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 MAX_UDP_PACKET_SIZE = 2048 # Maximum safe UDP packet size
 
@@ -21,14 +21,16 @@ class send:
     def eth0(self):
         self.s.connect((self.HOST, self.PORT))
         print('eth0 starting...')
+        print(f'Yelling on port {self.HOST}')
         
     
     def send_data(self, data):
         data = np.array(data, dtype=np.uint8).tobytes()  # Ensures data is bytes
-        chunks = np.reshape(data, (-1, MAX_UDP_PACKET_SIZE))
+        chunks = [data[i:i + MAX_UDP_PACKET_SIZE] for i in range(0, len(data), MAX_UDP_PACKET_SIZE)]
         for i, chunk in enumerate(chunks):
-            self.s.sendto(chunks, (self.HOST, self.PORT))
+            self.s.sendto(chunk, (self.HOST, self.PORT))
             print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')
+
 
 class receive:
     def __init__(self, HOST, PORT):
@@ -36,9 +38,6 @@ class receive:
         self.PORT = PORT
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.settimeout(5)
-        print("new version")
-        print(self.HOST)
-        print(self.PORT)
 
     def eth0(self):
         self.s.bind((self.HOST, self.PORT))
