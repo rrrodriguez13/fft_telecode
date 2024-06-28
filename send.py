@@ -1,25 +1,31 @@
 import time
 import numpy as np
-from functions import send, MAX_UDP_PACKET_SIZE
+from functions import send, MAX_UDP_PACKET_SIZE, perform_power, shift
 
 LAPTOP_IP = "192.168.0.234"
-RPI_IP = "192.168.0.235"
 PORT = 6371
 
+num_samples = 2048
+
 def capture_data(size):
-    # send a bunch of zeros for now, replace with actual data later
-    return [0] * size
+    # Simulate data capture, replace with actual data capture logic
+    return np.random.randn(size, 2)  # Random data for simulation
+
+def compute_spectrum(data):
+    d = data[..., 0] + 1j * data[..., 1]
+    pwr = shift(np.mean(perform_power(np.fft.fft(d)), axis=0))
+    return pwr
 
 def sender_main():
     UDP = send(LAPTOP_IP, PORT)
-    #UDP.eth0()
+    UDP.eth0()
     print('Everything initialized...')
     try:
         print('Starting loop... \n')
         while True:
-            # 3 chunks being sent
-            data = capture_data(3*MAX_UDP_PACKET_SIZE)
-            UDP.send_data(data)
+            raw_data = capture_data(num_samples)
+            spectrum = compute_spectrum(raw_data)
+            UDP.send_data(spectrum)
             time.sleep(1)
             print("Sent data!")
     except KeyboardInterrupt:
