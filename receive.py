@@ -1,4 +1,6 @@
-from functions import receive
+import functions
+from functions import receive, run_vis, sdr, prefix, folder
+
 
 LAPTOP_IP = "192.168.0.234"
 RPI_IP = "192.168.0.235"
@@ -24,3 +26,5 @@ def receiver_main():
 if __name__ == "__main__":
     # receiving script (not sending)
     receiver_main()
+
+functions.run_vis(sdr, prefix, folder)

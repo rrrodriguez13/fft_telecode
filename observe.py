@@ -19,6 +19,7 @@ folder = args.folder
 
 LAPTOP_IP = "192.168.0.234"
 PORT = 6371
+num_samples = 2048
 
 if not os.path.exists(folder):
     os.makedirs(folder)
@@ -29,12 +30,16 @@ sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=125.2e6, direct=False)
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
 
+def capture_data(data):
+    return data
+
 try:
     while True:
+        data = capture_data(3*num_samples)
         d = sdr.capture_data()
         UDP.send_data(d)
         time.sleep(1)
-        print("Sent Data!")
+        print("Sent Data! \n")
 except KeyboardInterrupt:
     UDP.stop()
     print("Data transfer stopped ...")
