@@ -1,6 +1,6 @@
 import time
 import numpy as np
-from functions import send, MAX_UDP_PACKET_SIZE
+from functions import send, num_samples
 
 LAPTOP_IP = "192.168.0.234"
 RPI_IP = "192.168.0.235"
@@ -18,7 +18,7 @@ def sender_main():
         print('Starting loop... \n')
         while True:
             # 3 chunks being sent
-            data = capture_data(3*MAX_UDP_PACKET_SIZE)
+            data = capture_data(3*num_samples)
             UDP.send_data(data)
             time.sleep(1)
             print("Sent data!")

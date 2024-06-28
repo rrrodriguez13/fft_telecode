@@ -7,7 +7,6 @@ num_samples = 2048
 sample_rate = 3.2e6
 center_freq = 125.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
-MAX_UDP_PACKET_SIZE = 2048 # Maximum safe UDP packet size
 
 class send:
     def __init__(self, HOST, PORT):
@@ -26,7 +25,7 @@ class send:
     
     def send_data(self, data):
         data = np.array(data, dtype=np.uint8).tobytes()  # Ensures data is bytes
-        chunks = [data[i:i + MAX_UDP_PACKET_SIZE] for i in range(0, len(data), MAX_UDP_PACKET_SIZE)]
+        chunks = [data[i:i + num_samples] for i in range(0, len(data), num_samples)]
         for i, chunk in enumerate(chunks):
             self.s.sendto(chunk, (self.HOST, self.PORT))
             print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')
@@ -48,7 +47,7 @@ class receive:
     def set_up(self):
         try:
             print('Waiting to receive data ...')
-            data, addr = self.s.recvfrom(MAX_UDP_PACKET_SIZE)
+            data, addr = self.s.recvfrom(num_samples)
             #print(f'Received data: {len(data)} bytes from {addr}')
             print('Received data!\n')
         except socket.timeout:

@@ -1,4 +1,4 @@
-from functions import receive, MAX_UDP_PACKET_SIZE
+from functions import receive
 
 LAPTOP_IP = "192.168.0.234"
 RPI_IP = "192.168.0.235"
