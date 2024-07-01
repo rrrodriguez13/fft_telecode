@@ -24,8 +24,10 @@ class send:
         
     
     def send_data(self, data):
-        data = np.array(data, dtype=np.uint8).tobytes()  # Ensures data is bytes
-        chunks = [data[i:i + num_samples] for i in range(0, len(data), num_samples)]
+        data = np.array(data, dtype=np.uint8)
+        data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
+        #chunks = [data[i:i + num_samples] for i in range(0, len(data), num_samples)]
+        chunks = [data]  # for now: send all data from one reading together
         for i, chunk in enumerate(chunks):
             self.s.sendto(chunk, (self.HOST, self.PORT))
             print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')

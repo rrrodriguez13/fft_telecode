@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 import ugradio
+import functions
 from functions import send
 
 # Arguments for when observing
@@ -35,8 +36,7 @@ def capture_data(data):
 
 try:
     while True:
-        data = capture_data(3*num_samples)
-        d = sdr.capture_data()
+        d = sdr.capture_data(num_samples)
         UDP.send_data(d)
         time.sleep(1)
         print("Sent Data! \n")
