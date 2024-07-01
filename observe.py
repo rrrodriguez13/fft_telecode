@@ -2,6 +2,7 @@ import argparse
 import os
 import time
 import ugradio
+import functions
 from functions import send
 
 # Arguments for when observing
