@@ -33,7 +33,7 @@ def receiver_main():
                 
                 spectrum = np.frombuffer(data, dtype=np.uint8)
                 spectrum.shape = (-1, 2)
-                print(spectrum.shape)
+                print("Data shape:", spectrum.shape)
                 
                 # save the data to a file
                 track_files += 1
@@ -41,13 +41,13 @@ def receiver_main():
 
                 # plots the data
                 plotter(spectrum, fig, line, folder, prefix, track_files) # Pass the last batch of data to the plotter
-
-                #plotter(spectrum, fig, line)
+            
     except KeyboardInterrupt:
         UDP.stop()
-        print('UDP Stopped...')
+        print('UDP stopping...')
     finally:
         print('Done.')
+        return
 
 if __name__ == "__main__":
     # receiving script (not sending)

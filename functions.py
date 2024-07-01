@@ -49,14 +49,15 @@ class receive:
     
     def set_up(self):
         try:
-            print('Waiting to receive data ...')
+            print('Searching for data ...')
             data, addr = self.s.recvfrom(2*num_samples)
             #print(f'Received data: {len(data)} bytes from {addr}')
             print('Received data!\n')
+            return data
         except socket.timeout:
             print('No data received, waiting for next packet ...')
             print("\n")
-        return data
+        
     
     def stop(self):
         self.s.close()
@@ -108,7 +109,7 @@ def set_up_plot():
 	plt.tight_layout()
 	plt.grid(color='dimgray')
 	plt.legend(loc='best')
-	plt.ylim(1e2, 1e9)
+	plt.ylim(1e5, 1e11)
 	return fig, line 
 
 def plotter(data, fig, line, folder, prefix, track_files):

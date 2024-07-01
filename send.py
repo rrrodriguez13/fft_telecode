@@ -1,33 +1,73 @@
+import argparse
+import os
 import time
-import numpy as np
-from functions import send, num_samples
+import ugradio
+import functions
+from functions import send
+import threading
+import queue
+
+# Arguments for when observing
+parser = argparse.ArgumentParser()
+parser.add_argument('--prefix', '-p', default='data')
+parser.add_argument('--len_obs', '-l', default='60')
+parser.add_argument('--folder', '-f', default='output')
+args = parser.parse_args()
+
+prefix = args.prefix
+len_obs = int(args.len_obs)
+folder = args.folder
 
 LAPTOP_IP = "192.168.0.234"
-RPI_IP = "192.168.0.235"
 PORT = 6371
+num_samples = 2048
 
-def capture_data(size):
-    # send a bunch of zeros for now, replace with actual data later
-    return [0] * size
+if not os.path.exists(folder):
+    os.makedirs(folder)
 
-def sender_main():
-    UDP = send(LAPTOP_IP, PORT)
-    #UDP.eth0()
-    print('Everything initialized...')
+# sets up SDR
+sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=125.2e6, direct=False)
+# sets up network connection
+UDP = send(LAPTOP_IP, PORT)
+
+# Create a queue for thread communication
+data_queue = queue.Queue()
+
+def producer():
     try:
-        print('Starting loop... \n')
         while True:
-            # 3 chunks being sent
-            data = capture_data(3*num_samples)
-            UDP.send_data(data)
-            time.sleep(1)
-            print("Sent data!")
+            d = sdr.capture_data(num_samples)
+            data_queue.put(d)
+            print("Captured Data and put in queue! \n")
+    except KeyboardInterrupt:
+        print("Data capture stopped ...")
+        UDP.stop()
+    finally:
+        print("Producer done.")
+
+def consumer():
+    try:
+        while True:
+            d = data_queue.get()
+            if d is None:
+                break
+            UDP.send_data(d)
+            print("Sent Data from queue! \n")
+            data_queue.task_done()
     except KeyboardInterrupt:
         UDP.stop()
-        print('UDP Stopped...')
     finally:
-        print('Done.')
+        print("Consumer done.")
 
-if __name__ == "__main__":
-    # send script (not receiving)
-    sender_main()
+# Start producer and consumer threads
+producer_thread = threading.Thread(target=producer)
+consumer_thread = threading.Thread(target=consumer)
+
+producer_thread.start()
+consumer_thread.start()
+
+producer_thread.join()
+data_queue.put(None)  # Signal consumer to exit
+consumer_thread.join()
+
+print("All done.")
