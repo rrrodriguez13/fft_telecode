@@ -8,6 +8,7 @@ sample_rate = 3.2e6
 center_freq = 125.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 
+# networking classes
 class send:
     def __init__(self, HOST, PORT):
         self.HOST = HOST
@@ -47,17 +48,18 @@ class receive:
     def set_up(self):
         try:
             print('Waiting to receive data ...')
-            data, addr = self.s.recvfrom(num_samples)
+            data, addr = self.s.recvfrom(2*num_samples)
             #print(f'Received data: {len(data)} bytes from {addr}')
             print('Received data!\n')
         except socket.timeout:
             print('No data received, waiting for next packet ...')
             print("\n")
+        return data
     
     def stop(self):
         self.s.close()
 
-
+# plotting and calculations
 def run_vis(sdr, prefix, folder):
     data = []
     track_files = 0  # number of files saved
@@ -109,7 +111,7 @@ def set_up_plot():
 
 def plotter(data, fig, line, folder, prefix, track_files):
     d = data[..., 0] + 1j * data[..., 1]
-    pwr = shift(np.mean(perform_power(np.fft.fft(d)), axis=0))
+    pwr = shift(perform_power(np.fft.fft(d)))
     
     title = f'{prefix}_{track_files}'
 

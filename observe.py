@@ -30,14 +30,11 @@ sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=125.2e6, direct=False)
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
 
-def capture_data(data):
-    return data
-
 try:
     while True:
-        data = capture_data(3*num_samples)
-        d = sdr.capture_data()
+        d = sdr.capture_data(num_samples)
         UDP.send_data(d)
+        files = d.run_vis(sdr, prefix, folder)
         time.sleep(1)
         print("Sent Data! \n")
 except KeyboardInterrupt:
