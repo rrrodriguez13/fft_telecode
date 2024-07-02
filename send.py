@@ -1,9 +1,9 @@
 import argparse
+import time
 import os
 import threading
 import queue
 import ugradio
-import functions
 from functions import send
 
 # Arguments for when observing
@@ -51,6 +51,7 @@ def data_sender():
             UDP.send_data(d)
             print("Sent Data! \n")
             data_queue.task_done()
+            time.sleep(1)
     except KeyboardInterrupt:
         UDP.stop()
         print("Data transfer stopped ...")
