@@ -44,14 +44,13 @@ def data_capture():
 
 def data_sender():
     try:
+        cnt = 0
         while True:
             d = data_queue.get()
-            if d is None:
-                break
             UDP.send_data(d)
-            print("Sent Data! \n")
-            data_queue.task_done()
-            time.sleep(1)
+            cnt += 1
+            print(f"Sent Data! cnt={cnt} \n")
+            #time.sleep(1)
     except KeyboardInterrupt:
         UDP.stop()
         print("Data transfer stopped ...")
