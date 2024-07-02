@@ -1,4 +1,3 @@
-import functions
 from functions import receive, writeto, set_up_plot, plotter
 import numpy as np
 import os
