@@ -97,20 +97,21 @@ def shift(signal):
     return np.fft.fftshift(signal)
     
 def set_up_plot():
-	plt.style.use('bmh')
-	plt.ion()
-	fig = plt.figure(figsize=(12, 6))
-	line, = plt.semilogy(freqs/1e6, np.ones_like(freqs), linewidth=0.8, label='Signal Data')
-	plt.xlabel('Frequency [MHz]', fontsize=16) # x-axis label
-	plt.ylabel('Power [arbitrary]', fontsize=16) # y-axis label
-	plt.xticks(fontsize=14)
-	plt.yticks(fontsize=14)
-	plt.gca().ticklabel_format(axis='x', style='plain') # removes the 1e6 on the x-axis
-	plt.tight_layout()
-	plt.grid(color='dimgray')
-	plt.legend(loc='best')
-	plt.ylim(1e5, 1e11)
-	return fig, line 
+    plt.style.use('bmh')
+    plt.ion()
+    fig = plt.figure(figsize=(12, 6))
+    line, = plt.semilogy(freqs/1e6, np.ones_like(freqs), linewidth=0.8, label='Signal Data')
+    plt.xlabel('Frequency [MHz]', fontsize=16) # x-axis label
+    plt.ylabel('Power [arbitrary]', fontsize=16) # y-axis label
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.gca().ticklabel_format(axis='x', style='plain') # removes the 1e6 on the x-axis
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.9)
+    plt.grid(color='dimgray')
+    plt.legend(loc='best')
+    plt.ylim(1e5, 1e11)
+    return fig, line
 
 def plotter(data, fig, line, folder, prefix, track_files):
     d = data[..., 0] + 1j * data[..., 1]
