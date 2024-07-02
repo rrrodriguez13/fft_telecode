@@ -67,12 +67,14 @@ def plot_data():
 
     try:
         while True:
-            item = plot_queue.get()
-            if item is None:
-                break
-
-            spectrum, track_files = item
-            plotter(spectrum, fig, line, 'output', 'data', track_files)
+            all_spectra = np.empty((100, 2048, 2))
+            for i in range(100):
+            
+                item = plot_queue.get()
+                spectrum, track_files = item
+                all_spectra[i] = spectrum
+            avg_spectra = np.mean(all_spectra, axis=0)
+            plotter(avg_spectra, fig, line, 'output', 'data', track_files/100)
 
             plot_queue.task_done()
     except KeyboardInterrupt:
