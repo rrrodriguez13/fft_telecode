@@ -41,8 +41,6 @@ def data_processor():
     try:
         while True:
             data = data_queue.get()
-            if data is None:
-                break
 
             spectrum = np.frombuffer(data, dtype=np.uint8)
             spectrum.shape = (-1, 2)

@@ -19,7 +19,7 @@ prefix = args.prefix
 len_obs = int(args.len_obs)
 folder = args.folder
 
-LAPTOP_IP = "192.168.0.234"
+LAPTOP_IP = "10.10.10.30"
 PORT = 6371
 num_samples = 2048
 
@@ -27,12 +27,12 @@ if not os.path.exists(folder):
     os.makedirs(folder)
 
 # sets up SDR
-sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=125.2e6, direct=False)
+sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=140.2e6, direct=False)
 
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
 
-data_queue = queue.Queue(maxsize=10)
+data_queue = queue.Queue(maxsize=0)
 
 def data_capture():
     try:
