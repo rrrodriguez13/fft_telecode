@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from functions import receive, writeto, set_up_plot, plotter
 
 # Networking
-LAPTOP_IP = "192.168.0.234"
+LAPTOP_IP = "10.10.10.30"
 PORT = 6371
 
 data_queue = queue.Queue(maxsize=10)
