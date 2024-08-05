@@ -6,6 +6,8 @@ import queue
 import ugradio
 from functions import send
 
+#github debbunging
+
 # Arguments for when observing
 parser = argparse.ArgumentParser()
 
