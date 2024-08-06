@@ -1,36 +1,36 @@
 import threading
 import queue
-import numpy as np
 import os
 import matplotlib.pyplot as plt
-from functions import receive, writeto, set_up_plot, plotter
+import numpy as np
+from functions import receive, writeto, initialize_plots, update_plot
 
-# Networking
-LAPTOP_IP = "10.10.10.30"
-PORT = 6371
+# Configuration
+IP_ADDRESSES = ["10.10.10.40", "10.10.10.50"]
+PORTS = [6371, 6372]  # Different ports for each IP
+DATA_QUEUE_SIZE = 10
 
-data_queue = queue.Queue(maxsize=10)
-plot_queue = queue.Queue(maxsize=10)
+data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
+plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 stop_event = threading.Event()
 
-def data_receiver():
-    UDP = receive(LAPTOP_IP, PORT)
+def data_receiver(ip, port):
+    UDP = receive(ip, port)
     UDP.eth0()
-    print('Everything Initialized ...')
-
+    print(f'Listening on {ip}:{port} ...')
     try:
         while not stop_event.is_set():
             data = UDP.set_up()
             if data:
-                data_queue.put(data)
+                data_queues[ip].put(data)
     except KeyboardInterrupt:
-        print('Data receiver interrupted.')
+        print(f'Data receiver for {ip} interrupted.')
     finally:
         UDP.stop()
-        data_queue.put(None)  # Signal to stop processing
-        print('Receiver done.')
+        data_queues[ip].put(None)  # Signal to stop processing
+        print(f'Receiver for {ip} done.')
 
-def data_processor():
+def data_processor(ip):
     folder = 'output'
     prefix = 'data'
     track_files = 0  # counter for the number of files saved
@@ -40,41 +40,43 @@ def data_processor():
 
     try:
         while True:
-            data = data_queue.get()
+            data = data_queues[ip].get()
+            if data is None:
+                break
 
             spectrum = np.frombuffer(data, dtype=np.uint8)
             spectrum.shape = (-1, 2)
-            print("Data shape:", spectrum.shape)
+            print(f"Data shape for {ip}: {spectrum.shape}")
             
-            # save the data to a file
+            # Save the data to a file
             track_files += 1
-            #writeto(spectrum, prefix, folder, track_files)
+            writeto(spectrum, prefix, folder, track_files)
 
-            # put the data in the plot queue
-            plot_queue.put((spectrum, track_files))
+            # Put the data in the plot queue
+            plot_queues[ip].put((spectrum, track_files))
 
-            data_queue.task_done()
+            data_queues[ip].task_done()
     except KeyboardInterrupt:
-        print('Data processor interrupted.')
+        print(f'Data processor for {ip} interrupted.')
     finally:
-        plot_queue.put(None)  # Signal to stop plotting
-        print('Processor done.')
+        plot_queues[ip].put(None)  # Signal to stop plotting
+        print(f'Processor for {ip} done.')
 
 def plot_data():
-    fig, line = set_up_plot()
+    fig, axs, lines = initialize_plots(IP_ADDRESSES)
 
     try:
         while True:
-            all_spectra = np.empty((100, 2048, 2))
-            for i in range(100):
-            
-                item = plot_queue.get()
-                spectrum, track_files = item
-                all_spectra[i] = spectrum
-            avg_spectra = np.mean(all_spectra, axis=0)
-            plotter(avg_spectra, fig, line, 'output', 'data', track_files/100)
+            for ip in IP_ADDRESSES:
+                item = plot_queues[ip].get()
+                if item is None:
+                    continue
 
-            plot_queue.task_done()
+                spectrum, track_files = item
+                update_plot(spectrum, fig, lines[IP_ADDRESSES.index(ip)])
+
+                plot_queues[ip].task_done()
+            plt.pause(0.1)
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
@@ -83,20 +85,23 @@ def plot_data():
         print('Plotting done.')
 
 if __name__ == "__main__":
-    receiver_thread = threading.Thread(target=data_receiver)
-    processor_thread = threading.Thread(target=data_processor)
+    receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
+    processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
 
-    receiver_thread.start()
-    processor_thread.start()
+    for thread in receiver_threads:
+        thread.start()
+    for thread in processor_threads:
+        thread.start()
 
     try:
         plot_data()
     except KeyboardInterrupt:
         print('Main thread interrupted.')
     finally:
-        # Signal all threads to stop
         stop_event.set()
-        receiver_thread.join()
-        data_queue.put(None)  # Signal processor thread to exit
-        processor_thread.join()
+        for thread in receiver_threads:
+            thread.join()
+        for thread in processor_threads:
+            data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
+            thread.join()
         print('Main thread done.')
