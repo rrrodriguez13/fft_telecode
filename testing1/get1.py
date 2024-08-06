@@ -3,7 +3,7 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions import receive, writeto, initialize_plots, update_plot, correlate_and_plot
+from functions1 import receive, writeto, initialize_plots, update_plot
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.40", "10.10.10.50"]
@@ -47,7 +47,7 @@ def data_processor(ip):
             spectrum = np.frombuffer(data, dtype=np.uint8)
             spectrum.shape = (-1, 2)
             print(f"Data shape for {ip}: {spectrum.shape}")
-
+            
             # Save the data to a file
             track_files += 1
             writeto(spectrum, prefix, folder, track_files)
@@ -56,42 +56,27 @@ def data_processor(ip):
             plot_queues[ip].put((spectrum, track_files))
 
             data_queues[ip].task_done()
-    except Exception as e:
-        print(f'Error in data processor for {ip}: {e}')
+    except KeyboardInterrupt:
+        print(f'Data processor for {ip} interrupted.')
     finally:
         plot_queues[ip].put(None)  # Signal to stop plotting
         print(f'Processor for {ip} done.')
 
 def plot_data():
     fig, axs, lines = initialize_plots(IP_ADDRESSES)
-    last_spectrum = {ip: None for ip in IP_ADDRESSES}
 
     try:
-        while not stop_event.is_set():
-            # Process data from each IP address
+        while True:
             for ip in IP_ADDRESSES:
-                if not plot_queues[ip].empty():
-                    item = plot_queues[ip].get()
-                    if item is None:
-                        continue
+                item = plot_queues[ip].get()
+                if item is None:
+                    continue
 
-                    spectrum, track_files = item
-                    try:
-                        update_plot(spectrum, fig, lines[IP_ADDRESSES.index(ip)])
-                        last_spectrum[ip] = spectrum
-                    except Exception as e:
-                        print(f'Error updating plot for {ip}: {e}')
+                spectrum, track_files = item
+                update_plot(spectrum, fig, lines[IP_ADDRESSES.index(ip)])
 
-            # Check if we have data from at least two IPs for correlation
-            if len(last_spectrum) == 2 and all(last_spectrum.values()):
-                ip1, ip2 = IP_ADDRESSES
-                try:
-                    correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
-                    plt.draw()  # Ensure the plot is updated
-                    plt.pause(0.1)  # Adjust or comment out if needed
-                except Exception as e:
-                    print(f'Error in correlation plotting: {e}')
-
+                plot_queues[ip].task_done()
+            #plt.pause(0.1)
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
@@ -113,7 +98,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print('Main thread interrupted.')
     finally:
-        stop_event.set()  # Signal all threads to stop
+        stop_event.set()
         for thread in receiver_threads:
             thread.join()
         for thread in processor_threads:

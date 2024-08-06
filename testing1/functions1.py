@@ -2,7 +2,6 @@ import numpy as np
 import socket
 import matplotlib.pyplot as plt
 import scipy as sci
-import scipy.signal
 import os
 
 num_samples = 2048
@@ -75,13 +74,12 @@ def correlate_signals(signal1, signal2):
 def initialize_plots(ip_addresses):
     plt.style.use('bmh')
     plt.ion()
-    num_plots = len(ip_addresses) + 1  # Add one more for the correlation plot
-    fig, axs = plt.subplots(num_plots, 1, figsize=(12, 6 * num_plots), sharex=True)
-    if num_plots == 1:
+    fig, axs = plt.subplots(len(ip_addresses), 1, figsize=(12, 6 * len(ip_addresses)), sharex=True)
+    if len(ip_addresses) == 1:
         axs = [axs]  # Ensure axs is iterable if only one subplot
 
     lines = []
-    for ax, ip in zip(axs[:-1], ip_addresses):  # Plot for IP addresses
+    for ax, ip in zip(axs, ip_addresses):
         line, = ax.semilogy(freqs / 1e6, np.ones_like(freqs), linewidth=0.8, label=f'Signal Data {ip}')
         lines.append(line)
         ax.set_title(f'Signal Data from {ip}')
@@ -90,13 +88,7 @@ def initialize_plots(ip_addresses):
         ax.grid(color='dimgray')
         ax.legend(loc='best')
         ax.set_ylim(1e4, 1e11)
-    
-    # Add the subplot for correlation
-    ax_corr = axs[-1]
-    ax_corr.set_title('Correlated Signal Plot')
-    ax_corr.set_xlabel('Frequency [MHz]')
-    ax_corr.set_ylabel('Time [s]')
-    
+
     plt.tight_layout()
     return fig, axs, lines
 
@@ -109,27 +101,4 @@ def update_plot(data, fig, line):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
-def correlate_and_plot(signal1, signal2, fig, axs):
-    # Compute correlation
-    correlation = correlate_signals(signal1, signal2)
-    
-    # Reshape correlation for plotting
-    num_points = len(correlation)
-    num_bins = len(freqs)
-    time_axis = np.arange(num_points)
-    freq_axis = np.linspace(-num_bins/2, num_bins/2, num_bins) / 1e6  # MHz
 
-    # Ensure correlation data is in a 2D array for imshow
-    corr_reshaped = np.reshape(correlation, (num_bins, num_points // num_bins))
-    
-    # Create or update the subplot for correlation
-    ax_corr = axs[-1]
-    ax_corr.clear()
-    cax = ax_corr.plot(corr_reshaped, aspect='auto', cmap='inferno', origin='lower',
-                         extent=[freq_axis.min(), freq_axis.max(), time_axis.min(), time_axis.max()])
-    ax_corr.set_title('Correlated Signal Plot')
-    ax_corr.set_xlabel('Frequency [MHz]')
-    ax_corr.set_ylabel('Time [s]')
-    fig.colorbar(cax, ax=ax_corr, orientation='vertical', label='Correlation')
-    plt.draw()
-    plt.pause(0.1)
