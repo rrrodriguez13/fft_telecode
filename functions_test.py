@@ -27,11 +27,12 @@ class send:
         
     def send_data(self, data):
         data = np.array(data, dtype=np.uint8)
-        data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
-        chunks = [data]  # for now: send all data from one reading together
-        for i, chunk in enumerate(chunks):
+        data = np.ravel(data).tobytes()
+        chunk_size = 1024  # Send data in chunks of 1024 bytes
+        for i in range(0, len(data), chunk_size):
+            chunk = data[i:i + chunk_size]
             self.s.sendto(chunk, (self.HOST, self.PORT))
-            print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')
+            print(f'Sent chunk {i//chunk_size + 1}/{(len(data)//chunk_size) + 1} of size {len(chunk)}')
 
 class receive:
     def __init__(self, HOST, PORT):
@@ -133,3 +134,4 @@ def correlate_and_plot(signal1, signal2, fig, axs):
     fig.colorbar(cax, ax=ax_corr, orientation='vertical', label='Correlation')
     plt.draw()
     plt.pause(0.1)
+
