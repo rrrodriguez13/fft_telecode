@@ -5,46 +5,60 @@ import queue
 import ugradio
 from functions import send
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--prefix', '-p', default='data')
-    parser.add_argument('--len_obs', '-l', default='60', type=int)
-    parser.add_argument('--folder', '-f', default='output')
-    return parser.parse_args()
+# Arguments for when observing
+parser = argparse.ArgumentParser()
+parser.add_argument('--prefix', '-p', default='data')
+parser.add_argument('--len_obs', '-l', default='60')
+parser.add_argument('--folder', '-f', default='output')
+args = parser.parse_args()
 
-def main():
-    args = parse_args()
-    folder = args.folder
+prefix = args.prefix
+len_obs = int(args.len_obs)
+folder = args.folder
 
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+LAPTOP_IP = "10.10.10.30"
+PORT = 6373 # corresponds to IP address (must change for each pi)
+num_samples = 2048
 
-    sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=145.2e6, direct=False)
-    udp = send("10.10.10.30", 6372)
+if not os.path.exists(folder):
+    os.makedirs(folder)
 
-    data_queue = queue.Queue()
-    stop_event = threading.Event()
+# sets up SDR
+sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=145.2e6, direct=False)
 
-    def data_sender():
-        while not stop_event.is_set() or not data_queue.empty():
-            data = data_queue.get()
-            if data is None:
-                break
-            udp.send_data(data)
+# sets up network connection
+UDP = send(LAPTOP_IP, PORT)
 
-    sender_thread = threading.Thread(target=data_sender)
-    sender_thread.start()
+data_queue = queue.Queue(maxsize=0)
+stop_event = threading.Event()
 
+def data_sender():
     try:
-        while not stop_event.is_set():
-            data = sdr.capture_data(2048)
-            data_queue.put(data)
+        cnt = 0
+        while not stop_event.is_set() or not data_queue.empty():
+            d = data_queue.get()
+            if d is None:
+                break
+            UDP.send_data(d)
+            cnt += 1
+            print(f"Sent Data! cnt={cnt} \n")
     except KeyboardInterrupt:
-        pass
+        UDP.stop()
+        print("Data transfer stopped ...")
     finally:
-        stop_event.set()
-        data_queue.put(None)
-        sender_thread.join()
+        UDP.stop()
+        print("Done.")
 
-if __name__ == "__main__":
-    main()
+sender_thread = threading.Thread(target=data_sender)
+sender_thread.start()
+
+try:
+    while not stop_event.is_set():
+        d = sdr.capture_data(num_samples)
+        data_queue.put(d)
+except KeyboardInterrupt:
+    stop_event.set()
+finally:
+    data_queue.put(None)  # Signal sender thread to exit
+    sender_thread.join()
+    print("Main thread done.")
