@@ -23,6 +23,7 @@ def data_receiver(ip, port):
         while not stop_event.is_set():
             data = UDP.set_up()
             if data:
+                print(f"Received data size: {len(data)}")
                 data_queues[ip].put(data)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
