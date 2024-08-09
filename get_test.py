@@ -5,11 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from functions import receive, writeto, initialize_plots, update_plot, correlate_and_plot
 
-# Configuration
 IP_ADDRESSES = ["10.10.10.40", "10.10.10.50"]
-PORTS = [6371, 6372]  # Different ports for each IP
+PORTS = [6371, 6372]
 DATA_QUEUE_SIZE = 10
-num_samples = 2048  # Define num_samples here
+num_samples = 2048
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
@@ -23,19 +22,19 @@ def data_receiver(ip, port):
         while not stop_event.is_set():
             data = UDP.set_up()
             if data:
-                print(f"Received data size: {len(data)}")
+                print(f"Received data size: {len(data)} bytes")
                 data_queues[ip].put(data)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
     finally:
         UDP.stop()
-        data_queues[ip].put(None)  # Signal to stop processing
+        data_queues[ip].put(None)
         print(f'Receiver for {ip} done.')
 
 def data_processor(ip):
     folder = 'output'
     prefix = 'data'
-    track_files = 0  # counter for the number of files saved
+    track_files = 0
 
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -47,27 +46,21 @@ def data_processor(ip):
                 break
 
             spectrum = np.frombuffer(data, dtype=np.uint8)
-            # Adjusting the shape to match expected format
-            if spectrum.size == 2 * num_samples:  # Checking if the size is as expected
+            if spectrum.size == 2 * num_samples:
                 spectrum.shape = (-1, 2)
             else:
                 print(f"Unexpected data size for {ip}: {spectrum.size}")
                 continue
 
-            print(f"Data shape for {ip}: {spectrum.shape}")
-
-            # Save the data to a file
             track_files += 1
             writeto(spectrum, prefix, folder, track_files)
-
-            # Put the data in the plot queue
             plot_queues[ip].put((spectrum, track_files))
 
             data_queues[ip].task_done()
     except Exception as e:
         print(f'Error in data processor for {ip}: {e}')
     finally:
-        plot_queues[ip].put(None)  # Signal to stop plotting
+        plot_queues[ip].put(None)
         print(f'Processor for {ip} done.')
 
 def plot_data():
@@ -76,7 +69,6 @@ def plot_data():
 
     try:
         while not stop_event.is_set():
-            # Process data from each IP address
             for ip in IP_ADDRESSES:
                 if not plot_queues[ip].empty():
                     item = plot_queues[ip].get()
@@ -90,13 +82,12 @@ def plot_data():
                     except Exception as e:
                         print(f'Error updating plot for {ip}: {e}')
 
-            # Check if we have data from at least two IPs for correlation
             if len(last_spectrum) == 2 and all(last_spectrum.values()):
                 ip1, ip2 = IP_ADDRESSES
                 try:
                     correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
-                    plt.draw()  # Ensure the plot is updated
-                    plt.pause(0.1)  # Adjust or comment out if needed
+                    plt.draw()
+                    plt.pause(0.1)
                 except Exception as e:
                     print(f'Error in correlation plotting: {e}')
 
@@ -105,26 +96,26 @@ def plot_data():
     finally:
         plt.ioff()
         plt.show()
-        print('Plotting done.')
+
+def start_data_processing():
+    threads = []
+
+    for ip, port in zip(IP_ADDRESSES, PORTS):
+        thread = threading.Thread(target=data_receiver, args=(ip, port))
+        thread.start()
+        threads.append(thread)
+
+    for ip in IP_ADDRESSES:
+        thread = threading.Thread(target=data_processor, args=(ip,))
+        thread.start()
+        threads.append(thread)
+
+    plot_thread = threading.Thread(target=plot_data)
+    plot_thread.start()
+    threads.append(plot_thread)
+
+    for thread in threads:
+        thread.join()
 
 if __name__ == "__main__":
-    receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
-    processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
-
-    for thread in receiver_threads:
-        thread.start()
-    for thread in processor_threads:
-        thread.start()
-
-    try:
-        plot_data()
-    except KeyboardInterrupt:
-        print('Main thread interrupted.')
-    finally:
-        stop_event.set()  # Signal all threads to stop
-        for thread in receiver_threads:
-            thread.join()
-        for thread in processor_threads:
-            data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
-            thread.join()
-        print('Main thread done.')
+    start_data_processing()
