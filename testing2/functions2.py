@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import scipy as sci
 import scipy.signal
 import os
-import time  # Import time for delays
 
 num_samples = 2048
 sample_rate = 3.2e6
@@ -26,21 +25,20 @@ class send:
         print('eth0 starting...')
         print(f'Yelling on port {self.HOST}')
         
-    def send_data(self, data, chunk_size=512):
+    def send_data(self, data):
         data = np.array(data, dtype=np.uint8)
         data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
-        chunks = [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
+        chunks = [data]  # for now: send all data from one reading together
         for i, chunk in enumerate(chunks):
             self.s.sendto(chunk, (self.HOST, self.PORT))
             print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')
-            time.sleep(0.1)  # Add a small delay between chunks
 
 class receive:
     def __init__(self, HOST, PORT):
         self.HOST = HOST
         self.PORT = PORT
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.settimeout(10)  # Increase timeout to 10 seconds
+        self.s.settimeout(5)
         
     def eth0(self):
         # Bind to all interfaces
@@ -50,8 +48,8 @@ class receive:
     def set_up(self):
         try:
             print('Searching for data ...')
-            data, addr = self.s.recvfrom(2 * num_samples)
-            print(f'Received data from {addr}!\n')
+            data, addr = self.s.recvfrom(2*num_samples)
+            print('Received data!\n')
             return data
         except socket.timeout:
             print('No data received, waiting for next packet ...')
@@ -62,8 +60,7 @@ class receive:
 
 def writeto(data, prefix, folder, track_files):
     filepath = os.path.join(folder, f'{prefix}_{track_files}.npz')
-    # Uncomment to save files into the output folder
-    # np.savez(filepath, data=data) 
+    #np.savez(filepath, data=data) # uncomment to save files into output folder
 
 def perform_power(signal):
     return np.abs(signal)**2
@@ -92,7 +89,7 @@ def initialize_plots(ip_addresses):
         ax.set_ylabel('Power [arbitrary]')
         ax.grid(color='dimgray')
         ax.legend(loc='best')
-        ax.set_ylim(1e4, 1e11)
+        #ax.set_ylim(1e4, 1e11)
     
     # Add the subplot for correlation
     ax_corr = axs[-1]
@@ -107,7 +104,7 @@ def update_plot(data, fig, line):
     d = data[..., 0] + 1j * data[..., 1]
     pwr = shift(perform_power(np.fft.fft(d)))
 
-    # Plots the data
+    # plots the data
     line.set_ydata(pwr)
     fig.canvas.draw()
     fig.canvas.flush_events()
@@ -120,7 +117,7 @@ def correlate_and_plot(signal1, signal2, fig, axs):
     num_points = len(correlation)
     num_bins = len(freqs)
     time_axis = np.arange(num_points)
-    freq_axis = np.linspace(-num_bins / 2, num_bins / 2, num_bins) / 1e6  # MHz
+    freq_axis = np.linspace(-num_bins/2, num_bins/2, num_bins) / 1e6  # MHz
 
     # Ensure correlation data is in a 2D array for imshow
     corr_reshaped = np.reshape(correlation, (num_bins, num_points // num_bins))
@@ -128,7 +125,7 @@ def correlate_and_plot(signal1, signal2, fig, axs):
     # Create or update the subplot for correlation
     ax_corr = axs[-1]
     ax_corr.clear()
-    cax = ax_corr.imshow(corr_reshaped, aspect='auto', cmap='inferno', origin='lower',
+    cax = ax_corr.plot(corr_reshaped, aspect='auto', cmap='inferno', origin='lower',
                          extent=[freq_axis.min(), freq_axis.max(), time_axis.min(), time_axis.max()])
     ax_corr.set_title('Correlated Signal Plot')
     ax_corr.set_xlabel('Frequency [MHz]')
