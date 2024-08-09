@@ -3,7 +3,7 @@ import os
 import threading
 import queue
 import ugradio
-from functions import send
+from functions_test import send
 
 # Arguments for when observing
 parser = argparse.ArgumentParser()
@@ -17,8 +17,8 @@ len_obs = int(args.len_obs)
 folder = args.folder
 
 LAPTOP_IP = "10.10.10.30"
-PORT = 6371  # or 6372?
-num_samples = 2048  # Make sure this matches `get.py`
+PORT = 6371 # or 6372?
+num_samples = 2048
 
 if not os.path.exists(folder):
     os.makedirs(folder)
@@ -54,8 +54,7 @@ sender_thread.start()
 
 try:
     while not stop_event.is_set():
-        d = sdr.capture_data(num_samples)  # Ensure num_samples is used
-        print(f"Captured data shape: {d.shape}")
+        d = sdr.capture_data(num_samples)
         data_queue.put(d)
 except KeyboardInterrupt:
     stop_event.set()

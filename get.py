@@ -7,7 +7,7 @@ from functions import receive, writeto, initialize_plots, update_plot, correlate
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
-PORTS = [6371, 6372]  # Different ports for each IP
+PORTS = [6373, 6372]  # Ensure each IP uses a unique port
 DATA_QUEUE_SIZE = 10
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
@@ -33,7 +33,7 @@ def data_receiver(ip, port):
 def data_processor(ip):
     folder = 'output'
     prefix = 'data'
-    track_files = 0  # counter for the number of files saved
+    track_files = 0  # Counter for the number of files saved
 
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -90,33 +90,45 @@ def plot_data():
                     plt.draw()  # Ensure the plot is updated
                     plt.pause(0.1)  # Adjust or comment out if needed
                 except Exception as e:
-                    print(f'Error in correlation plotting: {e}')
+                    print(f'Error plotting correlation: {e}')
 
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
-        plt.ioff()
-        plt.show()
-        print('Plotting done.')
+        plt.close(fig)
+        print('Plotter done.')
 
-if __name__ == "__main__":
-    receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
-    processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
+def main():
+    receivers = []
+    processors = []
+    
+    for ip, port in zip(IP_ADDRESSES, PORTS):
+        t_recv = threading.Thread(target=data_receiver, args=(ip, port))
+        t_proc = threading.Thread(target=data_processor, args=(ip,))
+        receivers.append(t_recv)
+        processors.append(t_proc)
 
-    for thread in receiver_threads:
-        thread.start()
-    for thread in processor_threads:
-        thread.start()
+    plotter = threading.Thread(target=plot_data)
 
     try:
-        plot_data()
+        for t in receivers + processors:
+            t.start()
+        
+        plotter.start()
+
+        for t in receivers + processors:
+            t.join()
+
+        stop_event.set()
+        plotter.join()
+
     except KeyboardInterrupt:
-        print('Main thread interrupted.')
+        stop_event.set()
+        for t in receivers + processors:
+            t.join()
+        plotter.join()
     finally:
-        stop_event.set()  # Signal all threads to stop
-        for thread in receiver_threads:
-            thread.join()
-        for thread in processor_threads:
-            data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
-            thread.join()
         print('Main thread done.')
+
+if __name__ == '__main__':
+    main()

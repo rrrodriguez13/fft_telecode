@@ -7,7 +7,7 @@ from functions2 import receive, writeto, initialize_plots, update_plot, correlat
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
-PORTS = [6371, 6372]  # Different ports for each IP
+PORTS = [6374, 6372]  # Different ports for each IP
 DATA_QUEUE_SIZE = 10
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}

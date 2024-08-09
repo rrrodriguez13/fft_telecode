@@ -89,7 +89,7 @@ def initialize_plots(ip_addresses):
         ax.set_ylabel('Power [arbitrary]')
         ax.grid(color='dimgray')
         ax.legend(loc='best')
-        #ax.set_ylim(1e4, 1e11)
+        ax.set_ylim(1e4, 1e11)
     
     # Add the subplot for correlation
     ax_corr = axs[-1]
