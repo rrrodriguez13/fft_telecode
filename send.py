@@ -17,7 +17,7 @@ len_obs = int(args.len_obs)
 folder = args.folder
 
 LAPTOP_IP = "10.10.10.30"
-PORT = 6373 # corresponds to IP address
+PORT = 6373 # corresponds to IP address (must change for each pi)
 num_samples = 2048
 
 if not os.path.exists(folder):

@@ -17,14 +17,14 @@ len_obs = int(args.len_obs)
 folder = args.folder
 
 LAPTOP_IP = "10.10.10.30"
-PORT = 6373 # corresponds to IP address (must change for each pi)
+PORT = 6373 
 num_samples = 2048
 
 if not os.path.exists(folder):
     os.makedirs(folder)
 
 # sets up SDR
-sdr = ugradio.sdr.SDR(sample_rate=3.2e6, center_freq=145.2e6, direct=False)
+sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=20)
 
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)

@@ -21,7 +21,7 @@ def data_receiver(ip, port):
     try:
         while not stop_event.is_set():
             data = UDP.set_up()
-            if data:
+            if data: 
                 data_queues[ip].put(data)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
@@ -44,7 +44,7 @@ def data_processor(ip):
             if data is None:
                 break
 
-            spectrum = np.frombuffer(data, dtype=np.uint8)
+            spectrum = np.frombuffer(data, dtype=np.int8)
             spectrum.shape = (-1, 2)
             print(f"Data shape for {ip}: {spectrum.shape}")
 
@@ -82,22 +82,19 @@ def plot_data():
                     except Exception as e:
                         print(f'Error updating plot for {ip}: {e}')
 
-            # Check if we have data from at least two IPs for correlation
-            if len(last_spectrum) == 2 and all(last_spectrum.values()):
-                ip1, ip2 = IP_ADDRESSES
-                try:
+            # Correlate signals if we have data from both IPs
+            if len(IP_ADDRESSES) >= 2:
+                ip1, ip2 = IP_ADDRESSES[:2]
+                if last_spectrum[ip1] is not None and last_spectrum[ip2] is not None:
                     correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
-                    plt.draw()  # Ensure the plot is updated
-                    plt.pause(0.1)  # Adjust or comment out if needed
-                except Exception as e:
-                    print(f'Error in correlation plotting: {e}')
 
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
-        plt.ioff()
-        plt.show()
+        #plt.ioff()
+        #plt.show()
         print('Plotting done.')
+
 
 if __name__ == "__main__":
     receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
