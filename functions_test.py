@@ -2,7 +2,6 @@ import numpy as np
 import socket
 import matplotlib.pyplot as plt
 from scipy import signal
-from send_test import cnt
 import os
 import time
 import glob
@@ -86,7 +85,7 @@ def initialize_plots(ip_addresses):
     for ax, ip in zip(axs[:-1], ip_addresses):  # subplots for IP addresses
         line, = ax.semilogy(freqs / 1e6, np.ones_like(freqs), linewidth=0.8, label='Signal')
         lines.append(line)
-        ax.set_title(f'Signal Data from {ip} [#{cnt}]')
+        ax.set_title(f'Signal Data from {ip}')
         ax.set_xlabel('Frequency [MHz]')
         ax.set_ylabel('Power [arbitrary]')
         ax.grid(color='dimgray')
