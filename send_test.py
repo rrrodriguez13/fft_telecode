@@ -1,6 +1,7 @@
 import argparse
 import os
-import asyncio
+import threading
+import queue
 import ugradio
 from functions import send
 
@@ -28,34 +29,38 @@ sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
 
-async def data_sender(queue):
-    cnt = 0
+data_queue = queue.Queue(maxsize=10)  # Set a maximum size for the queue
+stop_event = threading.Event()
+
+def data_sender():
     try:
-        while True:
-            d = await queue.get()
+        cnt = 0
+        while not stop_event.is_set() or not data_queue.empty():
+            d = data_queue.get()
             if d is None:
                 break
             UDP.send_data(d)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
+    except Exception as e:
+        print(f"Error in data_sender: {e}")
     finally:
         UDP.stop()
-        print("Data transfer stopped ...")
+        print("Data transfer stopped.")
 
-async def main():
-    queue = asyncio.Queue()
+sender_thread = threading.Thread(target=data_sender)
+sender_thread.start()
 
-    sender_task = asyncio.create_task(data_sender(queue))
-
-    try:
-        while True:
-            d = sdr.capture_data(num_samples)
-            await queue.put(d)
-    except KeyboardInterrupt:
-        await queue.put(None)  # Signal sender task to exit
-        await sender_task  # Wait for the sender to finish
-
-    print("Main process done.")
-
-if __name__ == "__main__":
-    asyncio.run(main())
+try:
+    while not stop_event.is_set():
+        d = sdr.capture_data(num_samples)
+        if not data_queue.full():
+            data_queue.put(d)
+        else:
+            print("Queue is full, dropping data to prevent blocking")
+except KeyboardInterrupt:
+    stop_event.set()
+finally:
+    data_queue.put(None)  # Signal sender thread to exit
+    sender_thread.join()
+    print("Main thread done.")
