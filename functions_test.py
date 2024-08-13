@@ -70,7 +70,7 @@ def shift(signal):
     return np.fft.fftshift(signal)
 
 def correlate_signals(signal1, signal2):
-    correlation = signal.correlate(signal1, signal2, mode='full')
+    correlation = signal.correlate(signal1/np.std(signal1), signal2/np.std(signal2), mode='full') / min(len(signal1), len(signal2))
     return correlation
     
 def initialize_plots(ip_addresses):
