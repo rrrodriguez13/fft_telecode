@@ -2,10 +2,8 @@ import numpy as np
 import socket
 import matplotlib.pyplot as plt
 from scipy import signal
-from send_test import cnt
 import os
 import time
-import glob
 
 num_samples = 2048
 sample_rate = 3.2e6
@@ -28,7 +26,7 @@ class send:
         print(f'Yelling on port {self.HOST}')
         
     def send_data(self, data):
-        data = np.array(data, dtype=np.int8)
+        data = np.array(data, dtype=np.uint8)
         data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
         chunks = [data]  # sends all data in chunks
         for i, chunk in enumerate(chunks):
@@ -62,7 +60,7 @@ class receive:
 
 def writeto(data, prefix, folder, track_files):
     filepath = os.path.join(folder, f'{prefix}_{track_files}.npz')
-    np.savez(filepath, data=data) # uncomment to save files into output folder
+    #np.savez(filepath, data=data) # uncomment to save files into output folder
 
 def perform_power(signal):
     return np.abs(signal)**2
@@ -71,7 +69,7 @@ def shift(signal):
     return np.fft.fftshift(signal)
 
 def correlate_signals(signal1, signal2):
-    correlation = signal.correlate(signal1/np.std(signal1), signal2/np.std(signal2), mode='full') / min(len(signal1), len(signal2))
+    correlation = signal.correlate(signal1, signal2, mode='full')
     return correlation
     
 def initialize_plots(ip_addresses):
@@ -86,7 +84,7 @@ def initialize_plots(ip_addresses):
     for ax, ip in zip(axs[:-1], ip_addresses):  # subplots for IP addresses
         line, = ax.semilogy(freqs / 1e6, np.ones_like(freqs), linewidth=0.8, label='Signal')
         lines.append(line)
-        ax.set_title(f'Signal Data from {ip} [#{cnt}]')
+        ax.set_title(f'Signal Data from {ip}')
         ax.set_xlabel('Frequency [MHz]')
         ax.set_ylabel('Power [arbitrary]')
         ax.grid(color='dimgray')
@@ -100,36 +98,32 @@ def update_plot(data, fig, line):
     d = data[..., 0] + 1j * data[..., 1]
     pwr = shift(perform_power(np.fft.fft(d)))
 
-    # plots new data and flushes previous data
+    # plots new data and flushes previous plot
     line.set_ydata(pwr)
     fig.canvas.draw()
     fig.canvas.flush_events()
 
 def correlate_and_plot(signal1, signal2, fig, axs):
-    # Compute correlation
+    # Compute correlation (will need to add more here if more than 2 signals are added)
     correlation = correlate_signals(signal1, signal2)
-
+    
     # Generate time lags for the x-axis
     lags = np.arange(-len(signal1) + 1, len(signal1))
     
-    # Access the correlation subplot
-    ax_corr = axs[-1]
-    
     # Clear the correlation plot before plotting
+    ax_corr = axs[-1]
     ax_corr.clear()
     
     # Plot the correlation
-    ax_corr.plot(correlation, linewidth=0.8, label='Correlated Signal', color='green')
+    ax_corr.plot(lags, correlation, linewidth=0.8, label='Correlated Signal', color='green')
     ax_corr.set_title('Correlation of Signals')
     ax_corr.set_xlabel('Time Lag')
     ax_corr.set_ylabel('Amplitude [arbitrary]')
     ax_corr.grid(True)
-    
-    # Optionally set y-axis limits if needed
-    # ax_corr.set_ylim(-50, 300)
+    #ax_corr.set_ylim(-50, 300)
+    #ax_corr.legend()
     
     # Refresh the plot
     fig.canvas.draw()
     fig.canvas.flush_events()
-
 
