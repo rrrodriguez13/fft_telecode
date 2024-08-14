@@ -4,7 +4,6 @@ import asyncio
 import ugradio
 from functions_test import send
 import numpy as np
-import socket
 
 # Argument parsing for observation configuration
 parser = argparse.ArgumentParser()
@@ -20,8 +19,6 @@ folder = args.folder
 LAPTOP_IP = "10.10.10.30"
 PORT = 6373
 num_samples = 2048
-ACK_PORT = 6374  # Port for acknowledgment messages
-MAX_RETRIES = 3  # Max retries for sending data
 
 if not os.path.exists(folder):
     os.makedirs(folder)
@@ -31,15 +28,6 @@ sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain
 
 # Set up network connection
 UDP = send(LAPTOP_IP, PORT)
-
-# Increase socket buffer size
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2**21)  # Increase buffer size
-
-# Acknowledgment socket setup
-ack_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-ack_sock.bind(("", ACK_PORT))
-ack_sock.settimeout(1.0)  # Timeout for waiting for ACK
 
 async def data_producer(nsamples, data_queue, stop_event):
     try:
@@ -57,24 +45,10 @@ async def data_sender(data_queue, stop_event):
             data = await data_queue.get()
             if data is None:
                 break
-            # Add sequence number to the data
-            sequence_number = cnt.to_bytes(4, 'big')
-            packet = sequence_number + data
-
-            # Send data with retry mechanism
-            for _ in range(MAX_RETRIES):
-                UDP.send_data(packet)
-                try:
-                    ack, _ = ack_sock.recvfrom(1024)
-                    if ack == sequence_number:
-                        print(f"Received ACK for packet {cnt}")
-                        break
-                except socket.timeout:
-                    print(f"ACK not received for packet {cnt}, retrying...")
-            else:
-                print(f"Failed to receive ACK after {MAX_RETRIES} retries for packet {cnt}")
-                
+            # Send data over UDP
+            UDP.send_data(data)
             cnt += 1
+            print(f"Sent Data! cnt={cnt}")
             data_queue.task_done()
     except Exception as e:
         print(f"Error in data_sender: {e}")
