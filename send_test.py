@@ -2,7 +2,6 @@ import argparse
 import os
 import asyncio
 import ugradio
-import queue
 from functions_test import send
 
 # arguments for when observing
@@ -29,16 +28,15 @@ sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
 
-data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
-
-async def data_sender():
+# async send data function
+async def data_sender(queue, stop_event):
     try:
         cnt = 0
-        while True:
-            d = await asyncio.to_thread(data_queue.get)
+        while not stop_event.is_set() or not queue.empty():
+            d = await queue.get()
             if d is None:
                 break
-            await asyncio.to_thread(UDP.send_data, d)
+            UDP.send_data(d)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
     except Exception as e:
@@ -47,24 +45,34 @@ async def data_sender():
         UDP.stop()
         print("Data transfer stopped.")
 
-async def main():
-    # Start sender threads as asyncio tasks
-    sender_tasks = [asyncio.create_task(data_sender()) for _ in range(3)]
-    
+# async capture data function
+async def data_producer(queue, stop_event):
     try:
-        while True:
-            d = await asyncio.to_thread(sdr.capture_data, num_samples)
-            data_queue.put(d)
-    except asyncio.CancelledError:
-        pass
+        while not stop_event.is_set():
+            d = sdr.capture_data(num_samples)
+            await queue.put(d)
     except KeyboardInterrupt:
-        pass
+        stop_event.set()
     finally:
-        # Stop sender tasks
-        for _ in range(3):
-            data_queue.put(None)
-        await asyncio.gather(*sender_tasks)
-        print("Main task done.")
+        await queue.put(None)  # signal sender to exit
 
-# Run the event loop
+async def main():
+    data_queue = asyncio.Queue()
+    stop_event = asyncio.Event()
+
+    # creates producer and sender tasks
+    producer_task = asyncio.create_task(data_producer(data_queue, stop_event))
+    sender_tasks = [asyncio.create_task(data_sender(data_queue, stop_event)) for _ in range(3)]
+
+    try:
+        await producer_task  # waits for the producer to finish
+        await asyncio.gather(*sender_tasks)  # waits for all sender tasks to finish
+    except KeyboardInterrupt:
+        stop_event.set()
+        await producer_task
+        await asyncio.gather(*sender_tasks)
+    finally:
+        print("Main function done.")
+
+# runs the asyncio event loop
 asyncio.run(main())
