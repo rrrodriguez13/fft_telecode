@@ -3,7 +3,7 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot
+from functions4 import receive, writeto, initialize_plots, update_plot, correlate_and_plot
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
