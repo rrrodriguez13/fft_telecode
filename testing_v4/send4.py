@@ -1,9 +1,9 @@
 import argparse
 import os
-import asyncio
-import ugradio
+import threading
 import queue
-from functions_test import send
+import ugradio
+from functions4 import send
 
 # arguments for when observing
 parser = argparse.ArgumentParser()
@@ -30,15 +30,16 @@ sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain
 UDP = send(LAPTOP_IP, PORT)
 
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
+stop_event = threading.Event()
 
-async def data_sender():
+def data_sender():
     try:
         cnt = 0
-        while True:
-            d = await asyncio.to_thread(data_queue.get)
+        while not stop_event.is_set() or not data_queue.empty():
+            d = data_queue.get()
             if d is None:
                 break
-            await asyncio.to_thread(UDP.send_data, d)
+            UDP.send_data(d)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
     except Exception as e:
@@ -47,24 +48,21 @@ async def data_sender():
         UDP.stop()
         print("Data transfer stopped.")
 
-async def main():
-    # Start sender threads as asyncio tasks
-    sender_tasks = [asyncio.create_task(data_sender()) for _ in range(3)]
-    
-    try:
-        while True:
-            d = await asyncio.to_thread(sdr.capture_data, num_samples)
-            data_queue.put(d)
-    except asyncio.CancelledError:
-        pass
-    except KeyboardInterrupt:
-        pass
-    finally:
-        # Stop sender tasks
-        for _ in range(3):
-            data_queue.put(None)
-        await asyncio.gather(*sender_tasks)
-        print("Main task done.")
+# increases the number of sender threads to handle data faster
+num_sender_threads = 3  # can adjust based on what system can handle
+sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
 
-# Run the event loop
-asyncio.run(main())
+for thread in sender_threads:
+    thread.start()
+
+try:
+    while not stop_event.is_set():
+        d = sdr.capture_data(num_samples)
+        data_queue.put(d)
+except KeyboardInterrupt:
+    stop_event.set()
+finally:
+    data_queue.put(None)  # signal sender threads to exit
+    for thread in sender_threads:
+        thread.join()
+    print("Main thread done.")
