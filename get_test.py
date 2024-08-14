@@ -1,4 +1,5 @@
-import asyncio
+import threading
+import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,29 +7,30 @@ from functions_test import receive, writeto, initialize_plots, update_plot, corr
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
-PORTS = [6373, 6372]  # using different ports for easy identification
+PORTS = [6373, 6372] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10
 
-data_queues = {ip: asyncio.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
-plot_queues = {ip: asyncio.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
+data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
+plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
+stop_event = threading.Event()
 
-async def data_receiver(ip, port):
+def data_receiver(ip, port):
     UDP = receive(ip, port)
     UDP.eth0()
     print(f'Listening on {ip}:{port} ...')
     try:
-        while True:
-            data = await UDP.set_up_async()
-            if data:
-                await data_queues[ip].put(data)
-    except asyncio.CancelledError:
-        print(f'Data receiver for {ip} cancelled.')
+        while not stop_event.is_set():
+            data = UDP.set_up()
+            if data: 
+                data_queues[ip].put(data)
+    except KeyboardInterrupt:
+        print(f'Data receiver for {ip} interrupted.')
     finally:
-        await UDP.stop_async()
-        await data_queues[ip].put(None)  # Signal to stop processing
+        UDP.stop()
+        data_queues[ip].put(None)  # Signal to stop processing
         print(f'Receiver for {ip} done.')
 
-async def data_processor(ip):
+def data_processor(ip):
     folder = 'output'
     prefix = 'data'
     track_files = 0  # counter for the number of files saved
@@ -38,7 +40,7 @@ async def data_processor(ip):
 
     try:
         while True:
-            data = await data_queues[ip].get()
+            data = data_queues[ip].get()
             if data is None:
                 break
 
@@ -51,24 +53,26 @@ async def data_processor(ip):
             writeto(spectrum, prefix, folder, track_files)
 
             # Put the data in the plot queue
-            await plot_queues[ip].put((spectrum, track_files))
-    except asyncio.CancelledError:
-        print(f'Data processor for {ip} cancelled.')
+            plot_queues[ip].put((spectrum, track_files))
+
+            data_queues[ip].task_done()
+    except Exception as e:
+        print(f'Error in data processor for {ip}: {e}')
     finally:
-        await plot_queues[ip].put(None)  # Signal to stop plotting
+        plot_queues[ip].put(None)  # Signal to stop plotting
         print(f'Processor for {ip} done.')
 
-async def plot_data():
+def plot_data():
     fig, axs, lines = initialize_plots(IP_ADDRESSES)
     last_spectrum = {ip: None for ip in IP_ADDRESSES}
     counters = {ip: 0 for ip in IP_ADDRESSES}  # Initialize counters for each IP
 
     try:
-        while True:
+        while not stop_event.is_set():
             # Process data from each IP address
             for ip in IP_ADDRESSES:
                 if not plot_queues[ip].empty():
-                    item = await plot_queues[ip].get()
+                    item = plot_queues[ip].get()
                     if item is None:
                         continue
 
@@ -90,25 +94,31 @@ async def plot_data():
                 if last_spectrum[ip1] is not None and last_spectrum[ip2] is not None:
                     correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
 
-            await asyncio.sleep(0.01)  # Small pause to update the plots in real-time
+            plt.pause(0.01)  # Small pause to update the plots in real-time
 
-    except asyncio.CancelledError:
-        print('Plotting cancelled.')
+    except KeyboardInterrupt:
+        print('Plotting interrupted.')
     finally:
         print('Plotting done.')
 
-async def main():
-    receiver_tasks = [asyncio.create_task(data_receiver(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
-    processor_tasks = [asyncio.create_task(data_processor(ip)) for ip in IP_ADDRESSES]
-    plot_task = asyncio.create_task(plot_data())
-
-    await asyncio.gather(*receiver_tasks)
-    await asyncio.gather(*processor_tasks)
-    plot_task.cancel()  # This will cancel the plotting when all other tasks are done
-    await plot_task
-
 if __name__ == "__main__":
+    receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
+    processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
+
+    for thread in receiver_threads:
+        thread.start()
+    for thread in processor_threads:
+        thread.start()
+
     try:
-        asyncio.run(main())
+        plot_data()
     except KeyboardInterrupt:
         print('Main thread interrupted.')
+    finally:
+        stop_event.set()  # Signal all threads to stop
+        for thread in receiver_threads:
+            thread.join()
+        for thread in processor_threads:
+            data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
+            thread.join()
+        print('Main thread done.')

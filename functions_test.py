@@ -3,7 +3,6 @@ import socket
 import matplotlib.pyplot as plt
 from scipy import signal
 import os
-import asyncio
 
 num_samples = 2048
 sample_rate = 3.2e6
@@ -20,9 +19,6 @@ class send:
     def stop(self):
         self.s.close()
     
-    async def stop_async(self):
-        self.s.close()
-
     def eth0(self):
         self.s.connect((self.HOST, self.PORT))
         print('eth0 starting...')
@@ -47,23 +43,18 @@ class receive:
         # Bind to all interfaces
         self.s.bind(('', self.PORT))
         print(f'Listening on port {self.PORT} ...')
-
-    async def set_up_async(self):
-        loop = asyncio.get_running_loop()
+    
+    def set_up(self):
         try:
             print('Searching for data ...')
-            data = await loop.sock_recv(self.s, 2*num_samples)
+            data, addr = self.s.recvfrom(2*num_samples)
             print('Received data!\n')
             return data
         except socket.timeout:
             print('No data received, waiting for next packet ...')
             print("\n")
-            return None
         
     def stop(self):
-        self.s.close()
-
-    async def stop_async(self):
         self.s.close()
 
 def writeto(data, prefix, folder, track_files):
