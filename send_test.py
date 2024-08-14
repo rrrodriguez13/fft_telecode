@@ -3,8 +3,9 @@ import os
 import asyncio
 import ugradio
 from functions_test import send
+import numpy as np
 
-# arguments for when observing
+# Argument parsing for observation configuration
 parser = argparse.ArgumentParser()
 parser.add_argument('--prefix', '-p', default='data')
 parser.add_argument('--len_obs', '-l', default='60')
@@ -22,57 +23,57 @@ num_samples = 2048
 if not os.path.exists(folder):
     os.makedirs(folder)
 
-# sets up SDR
+# Set up SDR
 sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=20)
 
-# sets up network connection
+# Set up network connection
 UDP = send(LAPTOP_IP, PORT)
 
-# async send data function
-async def data_sender(queue, stop_event):
+async def data_producer(nsamples, data_queue, stop_event):
+    try:
+        while not stop_event.is_set():
+            # Capture data using the SDR in a separate thread
+            data = await asyncio.to_thread(sdr.capture_data, nsamples)
+            await data_queue.put(data)
+    except Exception as e:
+        print(f"Error in data_producer: {e}")
+
+async def data_sender(data_queue, stop_event):
     try:
         cnt = 0
-        while not stop_event.is_set() or not queue.empty():
-            d = await queue.get()
-            if d is None:
+        while not stop_event.is_set() or not data_queue.empty():
+            data = await data_queue.get()
+            if data is None:
                 break
-            UDP.send_data(d)
+            # Send data over UDP
+            UDP.send_data(data)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
+            data_queue.task_done()
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
         UDP.stop()
         print("Data transfer stopped.")
 
-# async capture data function
-async def data_producer(queue, stop_event):
-    try:
-        while not stop_event.is_set():
-            d = sdr.capture_data(num_samples)
-            await queue.put(d)
-    except KeyboardInterrupt:
-        stop_event.set()
-    finally:
-        await queue.put(None)  # signal sender to exit
-
 async def main():
-    data_queue = asyncio.Queue()
     stop_event = asyncio.Event()
+    data_queue = asyncio.Queue(maxsize=10)
+    
+    producer_task = asyncio.create_task(data_producer(num_samples, data_queue, stop_event))
+    sender_task = asyncio.create_task(data_sender(data_queue, stop_event))
+    
+    # Run the producer for the observation duration
+    await asyncio.sleep(len_obs)
+    stop_event.set()  # Signal to stop producing and sending data
+    
+    # Wait for the producer to finish
+    await producer_task
+    await data_queue.put(None)  # Signal the sender to exit
+    await sender_task
 
-    # creates producer and sender tasks
-    producer_task = asyncio.create_task(data_producer(data_queue, stop_event))
-    sender_tasks = [asyncio.create_task(data_sender(data_queue, stop_event)) for _ in range(3)]
-
+if __name__ == "__main__":
     try:
-        await producer_task  # waits for the producer to finish
-        await asyncio.gather(*sender_tasks)  # waits for all sender tasks to finish
-    except KeyboardInterrupt:
-        stop_event.set()
-        await producer_task
-        await asyncio.gather(*sender_tasks)
-    finally:
-        print("Main function done.")
-
-# runs the asyncio event loop
-asyncio.run(main())
+        asyncio.run(main())
+    except RuntimeError as e:
+        print(f"RuntimeError: {e}")
