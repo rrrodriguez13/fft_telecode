@@ -50,7 +50,7 @@ def data_sender():
 
 def data_capture():
     try:
-        while not stop_event.is_set():
+        while not stop_event.is_set() or not data_queue.empty():
             d = sdr.capture_data(num_samples)
             data_queue.put(d)
     except KeyboardInterrupt:
@@ -64,11 +64,16 @@ def data_capture():
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle
 sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
-capture_thread = [threading.Thread(target=data_capture) for  _ in range(num_sender_threads)]
+capture_thread = threading.Thread(target=data_capture)
 
+# starts threads
 for thread in sender_threads:
     thread.start()
+capture_thread.start()
 
-for thread in capture_thread:
-    thread.start()
+# joins threads to wait for completion
+capture_thread.join()
+for thread in sender_threads:
+    thread.join()
 
+print("All threads have completed.")
