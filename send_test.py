@@ -48,21 +48,27 @@ def data_sender():
         UDP.stop()
         print("Data transfer stopped.")
 
+def data_capture():
+    try:
+        while not stop_event.is_set():
+            d = sdr.capture_data(num_samples)
+            data_queue.put(d)
+    except KeyboardInterrupt:
+        stop_event.set()
+    finally:
+        data_queue.put(None)  # signal sender threads to exit
+        for thread in sender_threads:
+            thread.join()
+        print("Main thread done.")
+
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle
 sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
+capture_thread = [threading.Thread(target=data_capture) for  _ in range(num_sender_threads)]
 
 for thread in sender_threads:
     thread.start()
 
-try:
-    while not stop_event.is_set():
-        d = sdr.capture_data(num_samples)
-        data_queue.put(d)
-except KeyboardInterrupt:
-    stop_event.set()
-finally:
-    data_queue.put(None)  # signal sender threads to exit
-    for thread in sender_threads:
-        thread.join()
-    print("Main thread done.")
+for thread in capture_thread:
+    thread.start()
+
