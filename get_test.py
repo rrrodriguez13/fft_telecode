@@ -104,6 +104,7 @@ def plot_data():
 if __name__ == "__main__":
     receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
     processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
+    plotting_thread = [threading.Thread(target=plot_data)]
 
     for thread in receiver_threads:
         thread.start()
