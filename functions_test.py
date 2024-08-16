@@ -5,7 +5,7 @@ from scipy import signal
 import os
 
 num_samples = 2048
-sample_rate = 3.2e6
+sample_rate = 2.8e6
 center_freq = 145.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 
@@ -88,7 +88,7 @@ def initialize_plots(ip_addresses):
         ax.set_ylabel('Power [arbitrary]')
         ax.grid(color='dimgray')
         ax.legend(loc='best')
-        ax.set_ylim(1e4, 1e11)
+        ax.set_ylim(1e1, 1e11)
     
     plt.tight_layout()
     return fig, axs, lines

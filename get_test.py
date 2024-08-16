@@ -94,12 +94,14 @@ def plot_data():
                 if last_spectrum[ip1] is not None and last_spectrum[ip2] is not None:
                     correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
 
-            plt.pause(0.01)  # Small pause to update the plots in real-time
+            #plt.pause(0.01)  # Small pause to update the plots in real-time
+            # *This plt.pause seems to break one of the threads*
 
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
         print('Plotting done.')
+
 
 if __name__ == "__main__":
     receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
@@ -110,16 +112,22 @@ if __name__ == "__main__":
         thread.start()
     for thread in processor_threads:
         thread.start()
-
-    try:
-        plot_data()
-    except KeyboardInterrupt:
-        print('Main thread interrupted.')
-    finally:
-        stop_event.set()  # Signal all threads to stop
-        for thread in receiver_threads:
-            thread.join()
-        for thread in processor_threads:
-            data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
-            thread.join()
-        print('Main thread done.')
+    for thread in plotting_thread:
+        thread.start()
+    '''
+    *keeping this seems to shut down the script as soon as it starts*
+    #try:
+        #plot_data()
+    #except KeyboardInterrupt:
+        #print('Main thread interrupted.')
+    #finally:
+        #stop_event.set()  # Signal all threads to stop
+    '''
+    for thread in receiver_threads:
+        thread.join()
+    for thread in processor_threads:
+        data_queues[thread.name.split('-')[1]].put(None)  # Signal processor threads to exit
+        thread.join()
+    for thread in plotting_thread:
+        thread.join()
+    print('Main thread done.')
