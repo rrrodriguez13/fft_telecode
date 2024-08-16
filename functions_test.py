@@ -5,7 +5,7 @@ from scipy import signal
 import os
 
 num_samples = 2048
-sample_rate = 2.8e6
+sample_rate = 2.2e6
 center_freq = 145.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 

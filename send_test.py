@@ -24,7 +24,7 @@ if not os.path.exists(folder):
     os.makedirs(folder)
 
 # sets up SDR
-sdr = ugradio.sdr.SDR(sample_rate=2.8e6, center_freq=145.2e6, direct=False, gain=20)
+sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=10)
 
 # sets up network connection
 UDP = send(LAPTOP_IP, PORT)
