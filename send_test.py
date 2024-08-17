@@ -37,8 +37,6 @@ def data_capture():
     try:
         while not stop_event.is_set() or not data_queue.empty():
             d = sdr.capture_data(num_samples)
-            data_array = np.arange(d)
-            data_array.append(data_queue)
             data_queue.put(d)
     except KeyboardInterrupt:
         stop_event.set()
