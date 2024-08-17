@@ -3,6 +3,7 @@ import os
 import threading
 import queue
 import ugradio
+import numpy as np
 from functions_test import send
 
 # arguments for when observing
@@ -32,6 +33,21 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
+def data_capture():
+    try:
+        while not stop_event.is_set() or not data_queue.empty():
+            d = sdr.capture_data(num_samples)
+            data_array = np.arange(d)
+            data_array.append(data_queue)
+            data_queue.put(d)
+    except KeyboardInterrupt:
+        stop_event.set()
+    finally:
+        data_queue.put(None)  # signal sender threads to exit
+        for thread in sender_threads:
+            thread.join()
+        print("Main thread done.")
+
 def data_sender():
     try:
         cnt = 0
@@ -47,19 +63,6 @@ def data_sender():
     finally:
         UDP.stop()
         print("Data transfer stopped.")
-
-def data_capture():
-    try:
-        while not stop_event.is_set() or not data_queue.empty():
-            d = sdr.capture_data(num_samples)
-            data_queue.put(d)
-    except KeyboardInterrupt:
-        stop_event.set()
-    finally:
-        data_queue.put(None)  # signal sender threads to exit
-        for thread in sender_threads:
-            thread.join()
-        print("Main thread done.")
 
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle

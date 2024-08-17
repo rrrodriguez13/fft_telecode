@@ -3,12 +3,14 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot
+from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot, check_data_loss
+
+num_samples = 2048
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
 PORTS = [6373, 6372] # using different ports for easy identification
-DATA_QUEUE_SIZE = 10
+DATA_QUEUE_SIZE = 100
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
@@ -18,11 +20,13 @@ def data_receiver(ip, port):
     UDP = receive(ip, port)
     UDP.eth0()
     print(f'Listening on {ip}:{port} ...')
+
     try:
         while not stop_event.is_set():
             data = UDP.set_up()
             if data: 
                 data_queues[ip].put(data)
+                check_data_loss(received_data=data, expected_samples=2*num_samples)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
     finally:
@@ -44,16 +48,16 @@ def data_processor(ip):
             if data is None:
                 break
 
-            spectrum = np.frombuffer(data, dtype=np.int8)
-            spectrum.shape = (-1, 2)
-            print(f"Data shape for {ip}: {spectrum.shape}")
+            signal = np.frombuffer(data, dtype=np.int8)
+            signal.shape = (-1, 2)
+            print(f"Data shape for {ip}: {signal.shape}")
 
             # Save the data to a file
             track_files += 1
-            writeto(spectrum, prefix, folder, track_files)
+            writeto(signal, prefix, folder, track_files)
 
             # Put the data in the plot queue
-            plot_queues[ip].put((spectrum, track_files))
+            plot_queues[ip].put((signal, track_files))
 
             data_queues[ip].task_done()
     except Exception as e:
@@ -64,7 +68,7 @@ def data_processor(ip):
 
 def plot_data():
     fig, axs, lines = initialize_plots(IP_ADDRESSES)
-    last_spectrum = {ip: None for ip in IP_ADDRESSES}
+    last_signal = {ip: None for ip in IP_ADDRESSES}
     counters = {ip: 0 for ip in IP_ADDRESSES}  # Initialize counters for each IP
 
     try:
@@ -76,10 +80,10 @@ def plot_data():
                     if item is None:
                         continue
 
-                    spectrum, track_files = item
+                    signal, track_files = item
                     try:
-                        update_plot(spectrum, fig, lines[IP_ADDRESSES.index(ip)])
-                        last_spectrum[ip] = spectrum
+                        update_plot(signal, fig, lines[IP_ADDRESSES.index(ip)])
+                        last_signal[ip] = signal
 
                         # Update the counter and plot title
                         counters[ip] += 1
@@ -91,8 +95,8 @@ def plot_data():
             # Correlate signals if we have data from both IPs
             if len(IP_ADDRESSES) >= 2:
                 ip1, ip2 = IP_ADDRESSES[:2]
-                if last_spectrum[ip1] is not None and last_spectrum[ip2] is not None:
-                    correlate_and_plot(last_spectrum[ip1], last_spectrum[ip2], fig, axs)
+                if last_signal[ip1] is not None and last_signal[ip2] is not None:
+                    correlate_and_plot(last_signal[ip1], last_signal[ip2], fig, axs)
 
             #plt.pause(0.01)  # Small pause to update the plots in real-time
             # *This plt.pause seems to break one of the threads*

@@ -59,7 +59,7 @@ class receive:
 
 def writeto(data, prefix, folder, track_files):
     filepath = os.path.join(folder, f'{prefix}_{track_files}.npz')
-    np.savez(filepath, data=data) # uncomment to save files into output folder
+    np.savez(filepath, data=data) # saves data to output folder
 
 def perform_power(signal):
     return np.abs(signal)**2
@@ -134,6 +134,5 @@ def correlate_and_plot(signal1, signal2, fig, axs):
     # Refresh the plot
     fig.canvas.draw()
     fig.canvas.flush_events()
-
 
 
