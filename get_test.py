@@ -3,7 +3,7 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot, check_data_loss
+from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot
 
 num_samples = 2048
 
@@ -26,7 +26,6 @@ def data_receiver(ip, port):
             data = UDP.set_up()
             if data: 
                 data_queues[ip].put(data)
-                check_data_loss(received_data=data, expected_samples=2*num_samples)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
     finally:
