@@ -34,12 +34,14 @@ def data_receiver(ip, port):
         print(f'Receiver for {ip} done.')
 
 def data_processor(ip):
-    folder = 'output'
-    prefix = 'data'
+    folder1 = 'num_output' # creates output folder for numbered list
+    folder2 = 'data_output' # creates output folder for actual data
+    prefix1 = 'num' # prefix for numbered list
+    prefix2 = 'data' # prefix for data
     track_files = 0  # counter for the number of files saved
 
-    if not os.path.exists(folder):
-        os.makedirs(folder)
+    if not os.path.exists(folder1 or folder2):
+        os.makedirs(folder1 or folder2)
 
     try:
         while True:
@@ -51,9 +53,13 @@ def data_processor(ip):
             signal.shape = (-1, 2)
             print(f"Data shape for {ip}: {signal.shape}")
 
+            list_column = signal[:, 0] # first column of array (list) 
+            data_column = signal[:, 1] # second column of array (data)
+
             # Save the data to a file
             track_files += 1
-            writeto(signal, prefix, folder, track_files)
+            writeto(list_column, prefix1, folder1, track_files)
+            writeto(data_column, prefix2, folder2, track_files)
 
             # Put the data in the plot queue
             plot_queues[ip].put((signal, track_files))
@@ -85,8 +91,8 @@ def plot_data():
                         last_signal[ip] = signal
 
                         # Update the counter and plot title
-                        counters[ip] += 1
-                        axs[IP_ADDRESSES.index(ip)].set_title(f'Signal Data for {ip} [cnt: #{counters[ip]}]')
+                        track_files[ip] += 1
+                        axs[IP_ADDRESSES.index(ip)].set_title(f'Signal Data for {ip} [cnt: #{track_files[ip]}]')
 
                     except Exception as e:
                         print(f'Error updating plot for {ip}: {e}')
