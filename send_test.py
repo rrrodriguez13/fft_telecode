@@ -36,16 +36,24 @@ stop_event = threading.Event()
 def data_capture():
     try:
         while not stop_event.is_set():
-            list = np.arange(1, num_samples, dtype=int)  # list of integers to attach to data
-            data = sdr.capture_data(num_samples)  # data
-            array = np.column_stack((list, data))  # array with integers added in first column
-            print(f"Captured data: {array.shape}")  # prints shape of data captured
+            list_data = np.arange(num_samples)  # List of integers to attach to data
+            data = sdr.capture_data(num_samples)  # Capture data
+
+            # Ensure data has the same number of rows as list_data
+            if data.shape[0] != list_data.shape[0]:
+                raise ValueError(f"Dimension mismatch: list_data has {list_data.shape[0]} rows, but data has {data.shape[0]} rows")
+
+            array = np.column_stack((list_data, data))  # Stack arrays horizontally
+            print(f"Captured data: {array.shape}")  # Prints shape of data captured
             data_queue.put(array)
     except KeyboardInterrupt:
         stop_event.set()
+    except Exception as e:
+        print(f"Error in data_capture: {e}")
     finally:
-        data_queue.put(None)  # signal sender threads to exit
-        print("Data capture thread done.")
+        data_queue.put(None)  # Signal sender threads to exit
+        print("Data capture done.")
+
 
 def data_sender():
     cnt = 0
