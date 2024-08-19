@@ -33,11 +33,12 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
-a = 0
-b = num_samples
-
 def data_capture():
     try:
+        
+        a = 0
+        b = num_samples
+
         while not stop_event.is_set():
             lst = np.arange(a, b, dtype=np.int8) # list of integers to attach to data
             data = sdr.capture_data(num_samples)[0] # data
