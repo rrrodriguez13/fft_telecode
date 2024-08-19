@@ -40,14 +40,14 @@ def data_capture():
         b = num_samples
 
         while not stop_event.is_set():
-            lst = np.arange(a, b, dtype=np.int8) # list of integers to attach to data
+            lst = np.arange(a, b) # list of integers to attach to data
             data = sdr.capture_data(num_samples) # data
             data.shape = (-1, 2)
             i = data[:, 0]
             q = data[:, 1]
             data = i + 1j*q
             #print(lst.shape)
-            #print(data.shape)
+            print(data.shape)
             array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)

@@ -53,23 +53,21 @@ def data_processor(ip):
                 print("No data received. You suck!")
                 break
 
-            signal = np.frombuffer(data, dtype=np.int8)
-            signal.shape = (-1, 3)
+            signal = np.frombuffer(data)
+            print(signal.shape)
+            signal.shape = (2, -1)
             print(f"Data shape for {ip}: {signal.shape}")
 
-            num_column = signal[:, 0] # first column of array (num)
-            data_column1 = signal[:, 1] # second column of array (data)
-            data_column2 = signal[:, 2] # third column of array (data)
-
-            data_column = np.vstack((data_column1, data_column2), dtype=np.int8)
+            num_row = signal[0] # first row of array (num)
+            data_row = signal[1] # second row of array (data)
 
             # Save the data to a file
             track_files += 1
-            writeto(num_column, prefix1, folder1, track_files)
-            writeto(data_column, prefix2, folder2, track_files)
+            writeto(num_row, prefix1, folder1, track_files)
+            writeto(data_row, prefix2, folder2, track_files)
 
             # Put the data in the plot queue
-            plot_queues[ip].put((data_column, track_files))
+            plot_queues[ip].put((data_row, track_files))
 
             data_queues[ip].task_done()
     except Exception as e:

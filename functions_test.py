@@ -25,7 +25,7 @@ class send:
         print(f'Yelling on port {self.HOST}')
         
     def send_data(self, data):
-        data = np.array(data, dtype=np.int8)
+        data = np.array(data)
         data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
         chunks = [data]  # sends all data in chunks
         for i, chunk in enumerate(chunks):
@@ -47,7 +47,7 @@ class receive:
     def set_up(self):
         try:
             print('Searching for data ...')
-            data, addr = self.s.recvfrom(3*num_samples)
+            data, addr = self.s.recvfrom(2*num_samples)
             print('Received data!\n')
             return data
         except socket.timeout:
@@ -94,7 +94,8 @@ def initialize_plots(ip_addresses):
     return fig, axs, lines
 
 def update_plot(data, fig, line):
-    d = data[..., 0] + 1j * data[..., 1]
+    #d = data[..., 0] + 1j * data[..., 1]
+    d = data
     pwr = shift(perform_power(np.fft.fft(d)))
 
     # plots new data and flushes previous data
