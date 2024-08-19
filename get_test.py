@@ -53,12 +53,12 @@ def data_processor(ip):
             signal.shape = (-1, 2)
             print(f"Data shape for {ip}: {signal.shape}")
 
-            list_column = signal[:, 0] # first column of array (list) 
+            num_column = signal[:, 2] # first column of array (num)
             data_column = signal[:, 1] # second column of array (data)
 
             # Save the data to a file
             track_files += 1
-            writeto(list_column, prefix1, folder1, track_files)
+            writeto(num_column, prefix1, folder1, track_files)
             writeto(data_column, prefix2, folder2, track_files)
 
             # Put the data in the plot queue
