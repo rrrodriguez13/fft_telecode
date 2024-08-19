@@ -37,14 +37,22 @@ def data_capture():
     try:
         while not stop_event.is_set():
             list_data = np.arange(num_samples)  # List of integers to attach to data
-            data = sdr.capture_data(num_samples)  # Capture data
+            
+            # Capture data from SDR
+            data = sdr.capture_data(num_samples)
+            
+            # Print shapes for debugging
+            print(f"list_data shape: {list_data.shape}")
+            print(f"data shape: {data.shape}")
 
-            # Ensure data has the same number of rows as list_data
+            # Check if data has the same number of rows as list_data
             if data.shape[0] != list_data.shape[0]:
-                raise ValueError(f"Dimension mismatch: list_data has {list_data.shape[0]} rows, but data has {data.shape[0]} rows")
-
-            array = np.column_stack((list_data, data))  # Stack arrays horizontally
-            print(f"Captured data: {array.shape}")  # Prints shape of data captured
+                print(f"Dimension mismatch detected: list_data has {list_data.shape[0]} rows, but data has {data.shape[0]} rows")
+                continue  # Skip processing this batch and continue to the next
+            
+            # Stack arrays horizontally
+            array = np.column_stack((list_data, data))
+            print(f"Captured data shape after stacking: {array.shape}")
             data_queue.put(array)
     except KeyboardInterrupt:
         stop_event.set()
@@ -53,6 +61,7 @@ def data_capture():
     finally:
         data_queue.put(None)  # Signal sender threads to exit
         print("Data capture done.")
+
 
 
 def data_sender():
