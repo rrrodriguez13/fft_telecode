@@ -47,7 +47,7 @@ class receive:
     def set_up(self):
         try:
             print('Searching for data ...')
-            data, addr = self.s.recvfrom(2*num_samples)
+            data, addr = self.s.recvfrom(3*num_samples)
             print('Received data!\n')
             return data
         except socket.timeout:

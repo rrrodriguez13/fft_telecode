@@ -40,21 +40,28 @@ def data_processor(ip):
     prefix2 = 'data' # prefix for data
     track_files = 0  # counter for the number of files saved
 
-    if not os.path.exists(folder1 or folder2):
-        os.makedirs(folder1 or folder2)
+    if not os.path.exists(folder1):
+        os.makedirs(folder1)
+
+    if not os.path.exists(folder2):
+        os.makedirs(folder2)
 
     try:
         while True:
             data = data_queues[ip].get()
             if data is None:
+                print("No data received. You suck!")
                 break
 
             signal = np.frombuffer(data, dtype=np.int8)
-            signal.shape = (-1, 2)
+            signal.shape = (-1, 3)
             print(f"Data shape for {ip}: {signal.shape}")
 
-            num_column = signal[:, 2] # first column of array (num)
-            data_column = signal[:, 1] # second column of array (data)
+            num_column = signal[:, 0] # first column of array (num)
+            data_column1 = signal[:, 1] # second column of array (data)
+            data_column2 = signal[:, 2] # third column of array (data)
+
+            data_column = np.vstack((data_column1, data_column2), dtype=np.int8)
 
             # Save the data to a file
             track_files += 1
@@ -62,7 +69,7 @@ def data_processor(ip):
             writeto(data_column, prefix2, folder2, track_files)
 
             # Put the data in the plot queue
-            plot_queues[ip].put((signal, track_files))
+            plot_queues[ip].put((data_column, track_files))
 
             data_queues[ip].task_done()
     except Exception as e:
@@ -85,14 +92,14 @@ def plot_data():
                     if item is None:
                         continue
 
-                    signal, track_files = item
+                    signal, counters = item
                     try:
                         update_plot(signal, fig, lines[IP_ADDRESSES.index(ip)])
                         last_signal[ip] = signal
 
                         # Update the counter and plot title
-                        track_files[ip] += 1
-                        axs[IP_ADDRESSES.index(ip)].set_title(f'Signal Data for {ip} [cnt: #{track_files[ip]}]')
+                        counters[ip] += 1
+                        axs[IP_ADDRESSES.index(ip)].set_title(f'Signal Data for {ip} [cnt: #{counters[ip]}]')
 
                     except Exception as e:
                         print(f'Error updating plot for {ip}: {e}')

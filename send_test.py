@@ -33,16 +33,21 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
+a = 0
+b = num_samples
+
 def data_capture():
     try:
         while not stop_event.is_set():
-            lst = np.arange(0, num_samples, dtype=int) # list of integers to attach to data
+            lst = np.arange(a, b, dtype=np.int8) # list of integers to attach to data
             data = sdr.capture_data(num_samples)[0] # data
             #print(lst.shape)
             #print(data.shape)
-            array = np.column_stack((lst, data)) # array defined as 2 columns for integers and data
+            array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
+            a += num_samples
+            b += num_samples
     except KeyboardInterrupt:
         stop_event.set()
     finally:
