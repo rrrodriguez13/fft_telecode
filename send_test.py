@@ -35,13 +35,17 @@ stop_event = threading.Event()
 
 def data_capture():
     try:
-        
+
         a = 0
         b = num_samples
 
         while not stop_event.is_set():
             lst = np.arange(a, b, dtype=np.int8) # list of integers to attach to data
-            data = sdr.capture_data(num_samples)[0] # data
+            data = sdr.capture_data(num_samples) # data
+            data.shape = (-1, 2)
+            i = data[:, 0]
+            q = data[:, 1]
+            data = i + 1j*q
             #print(lst.shape)
             #print(data.shape)
             array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
