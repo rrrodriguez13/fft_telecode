@@ -76,6 +76,7 @@ num_sender_threads = 3  # can adjust based on what system can handle
 sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
 
 # starts sender threads
-sender_threads.start()
+for thread in sender_threads:
+    sender_threads.start()
 
 print("All threads have completed.")
