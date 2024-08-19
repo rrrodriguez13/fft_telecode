@@ -35,10 +35,11 @@ stop_event = threading.Event()
 
 def data_capture():
     try:
-        while not stop_event.is_set() or not data_queue.empty():
+        while not stop_event.is_set():
             list = np.arange(1, num_samples, dtype=int) # list of integers to attach to data
             data = sdr.capture_data(num_samples) # data
-            array = np.column_stack((list, data))
+            array = np.column_stack((list, data)) # array with integers added in first column
+            print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
     except KeyboardInterrupt:
         stop_event.set()
@@ -55,6 +56,7 @@ def data_sender():
             data_array = data_queue.get()
             if data_array is None:
                 break
+            print(f"Sending data: {data_array.shape}")  # prints shape of data being sent
             UDP.send_data(data_array)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
@@ -63,6 +65,7 @@ def data_sender():
     finally:
         UDP.stop()
         print("Data transfer stopped.")
+
 
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle
