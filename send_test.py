@@ -1,5 +1,4 @@
 import argparse
-import time
 import os
 import threading
 import queue
@@ -36,7 +35,7 @@ stop_event = threading.Event()
 
 def data_capture():
     try:
-        while not stop_event.is_set():
+        while not stop_event.is_set() or not data_queue.empty():
             list = np.arange(1, num_samples, dtype=int) # list of integers to attach to data
             data = sdr.capture_data(num_samples) # data
             array = np.column_stack((list, data))
@@ -52,16 +51,13 @@ def data_capture():
 def data_sender():
     try:
         cnt = 0
-        while not stop_event.is_set():
-            if not data_queue.empty():
-                data_array = data_queue.get()
-                if data_array is None:
-                    break
-                UDP.send_data(data_array)
-                cnt += 1
-                print(f"Sent Data! cnt={cnt}")
-            else:
-                time.sleep(0.1)
+        while not stop_event.is_set() or not data_queue.empty():
+            data_array = data_queue.get()
+            if data_array is None:
+                break
+            UDP.send_data(data_array)
+            cnt += 1
+            print(f"Sent Data! cnt={cnt}")
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
