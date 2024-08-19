@@ -1,4 +1,5 @@
 import argparse
+import time
 import os
 import threading
 import queue
@@ -52,12 +53,15 @@ def data_sender():
     try:
         cnt = 0
         while not stop_event.is_set():
-            data_array = data_queue.get()
-            if data_array is None:
-                break
-            UDP.send_data(data_array)
-            cnt += 1
-            print(f"Sent Data! cnt={cnt}")
+            if not data_queue.empty():
+                data_array = data_queue.get()
+                if data_array is None:
+                    break
+                UDP.send_data(data_array)
+                cnt += 1
+                print(f"Sent Data! cnt={cnt}")
+            else:
+                time.sleep(0.1)
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
