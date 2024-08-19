@@ -73,12 +73,15 @@ sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender
 capture_thread = threading.Thread(target=data_capture)
 
 # starts threads
+for thread in capture_thread:
+    capture_thread.start()
 for thread in sender_threads:
     thread.start()
-capture_thread.start()
+
 
 # joins threads to wait for completion
-capture_thread.join()
+for thread in capture_thread:
+    capture_thread.join()
 for thread in sender_threads:
     thread.join()
 
