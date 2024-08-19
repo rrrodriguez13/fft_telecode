@@ -36,37 +36,24 @@ stop_event = threading.Event()
 def data_capture():
     try:
         while not stop_event.is_set():
-            list_data = np.arange(num_samples)  # List of integers to attach to data
-            
-            # Capture data from SDR
-            data = sdr.capture_data(num_samples)
-            
-            # Print shapes for debugging
-            print(f"list_data shape: {list_data.shape}")
-            print(f"data shape: {data.shape}")
-
-            # Check if data has the same number of rows as list_data
-            if data.shape[0] != list_data.shape[0]:
-                print(f"Dimension mismatch detected: list_data has {list_data.shape[0]} rows, but data has {data.shape[0]} rows")
-                continue  # Skip processing this batch and continue to the next
-            
-            # Stack arrays horizontally
-            array = np.column_stack((list_data, data))
-            print(f"Captured data shape after stacking: {array.shape}")
+            list = np.arange(1, num_samples, dtype=int) # list of integers to attach to data
+            data = sdr.capture_data(num_samples) # data
+            array = np.column_stack((list, data)) # array with integers added in first column
+            print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
     except KeyboardInterrupt:
         stop_event.set()
-    except Exception as e:
-        print(f"Error in data_capture: {e}")
     finally:
-        data_queue.put(None)  # Signal sender threads to exit
-        print("Data capture done.")
+        data_queue.put(None)  # signal sender threads to exit
+        for thread in capture_thread:
+            thread.join()
+        print("Main thread done.")
 
-
+capture_thread = threading.Thread(target=data_capture)
 
 def data_sender():
-    cnt = 0
     try:
+        cnt = 0
         while not stop_event.is_set() or not data_queue.empty():
             data_array = data_queue.get()
             if data_array is None:
@@ -75,25 +62,20 @@ def data_sender():
             UDP.send_data(data_array)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
+            for thread in sender_threads:
+                thread.join()
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
         UDP.stop()
-        print("Data sender thread done.")
+        print("Data transfer stopped.")
+
 
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle
 sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
-capture_thread = threading.Thread(target=data_capture)
 
-# starts threads
-capture_thread.start()
-for thread in sender_threads:
-    thread.start()
-
-# waits for threads to complete
-capture_thread.join()
-for thread in sender_threads:
-    thread.join()
+# starts sender threads
+sender_threads.start()
 
 print("All threads have completed.")
