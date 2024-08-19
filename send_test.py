@@ -37,11 +37,11 @@ def data_capture():
     try:
         while not stop_event.is_set():
             lst = np.arange(0, num_samples, dtype=int) # list of integers to attach to data
-            data = sdr.capture_data(num_samples) # data
+            data = sdr.capture_data(num_samples)[0] # data
             print(lst.shape)
             print(data.shape)
             #data = d.reshape(2*num_samples, 1) # reshaping data for array with list of integers
-            array = np.column_stack((list, data)) # array defined as 2 columns for integers and data
+            array = np.column_stack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
     except KeyboardInterrupt:
