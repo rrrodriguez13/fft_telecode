@@ -45,11 +45,7 @@ def data_capture():
         stop_event.set()
     finally:
         data_queue.put(None)  # signal sender threads to exit
-        for thread in capture_thread:
-            thread.join()
-        print("Main thread done.")
-
-capture_thread = threading.Thread(target=data_capture)
+        print("Capture thread done.")
 
 def data_sender():
     try:
@@ -62,8 +58,6 @@ def data_sender():
             UDP.send_data(data_array)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
-            for thread in sender_threads:
-                thread.join()
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
@@ -73,6 +67,17 @@ def data_sender():
 
 # increases the number of sender threads to handle data faster
 num_sender_threads = 3  # can adjust based on what system can handle
+capture_thread = threading.Thread(target=data_capture)
 sender_threads = [threading.Thread(target=data_sender) for _ in range(num_sender_threads)]
+
+# starts threads
+capture_thread.start()
+for thread in sender_threads:
+    thread.start()
+
+# joins threads to wait for completion
+capture_thread.join()
+for thread in sender_threads:
+    thread.join()
 
 print("All threads have completed.")
