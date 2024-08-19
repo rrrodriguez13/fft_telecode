@@ -53,7 +53,7 @@ def data_processor(ip):
                 print("No data received. You suck!")
                 break
 
-            signal = np.frombuffer(data)
+            signal = np.frombuffer(data, dtype=np.int32)
             print(signal.shape)
             signal.shape = (2, -1)
             print(f"Data shape for {ip}: {signal.shape}")
