@@ -25,7 +25,7 @@ class send:
         print(f'Yelling on port {self.HOST}')
         
     def send_data(self, data):
-        data = np.array(data, dtype=np.int32)
+        data = np.array(data, dtype=np.int8)
         data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
         chunks = [data]  # sends all data in chunks
         for i, chunk in enumerate(chunks):
