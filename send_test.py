@@ -35,13 +35,9 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
-def format_time(t1, t2):
-    # calculates the difference in seconds
-    delta = t2 - t1
-    total_seconds = delta
-
-    # extracts components from total seconds
-    hours, remainder = divmod(total_seconds, 3600)
+def format_time(seconds_elapsed):
+    # Extracts components from total seconds
+    hours, remainder = divmod(seconds_elapsed, 3600)
     minutes, remainder = divmod(remainder, 60)
     seconds, milliseconds = divmod(remainder, 1)
     milliseconds, microseconds = divmod(milliseconds * 1e3, 1)
@@ -54,24 +50,29 @@ def data_capture():
     try:
         a = 0
         b = num_samples
+        
+        # captures the start time of starting data collection program 
+        t_start = time.time()
 
         while not stop_event.is_set():
             lst = np.arange(a, b)  # list of integers to attach to data
-            t1 = time.time()
-            data = sdr.capture_data(num_samples)  # data
-            t2 = time.time()
+            
+            # calculates t1 and t2 as the time elapsed since t_start
+            t1 = time.time() - t_start
+            data = sdr.capture_data(num_samples)  # data collection
+            t2 = time.time() - t_start
             
             data.shape = (-1, 2)  # data shape
             i = data[:, 0]  # first column
             q = data[:, 1]  # second column
             data = i + 1j*q
 
-            # prints t1 and t2 as floating point numbers
-            print("t1:", t1)
-            print("t2:", t2)
-            print("Elapsed time:", format_time(t1, t2))  # uses format_time to show the elapsed time
+            # prints recorded elapsed time since the start of data collection
+            print(f"t1 (seconds elapsed): {t1}") # seconds recorded before collection
+            print(f"t2 (seconds elapsed): {t2}") # seconds recorded after collection
+            print("Time Difference:", format_time(t2 - t1))  # uses format_time to show the time difference
             array = np.vstack((lst, data))  # array defined as 2 columns for integers and data
-            print(f"Captured data: {array.shape}")  # prints shape of data captured
+            print(f"Captured data shape: {array.shape}")  # prints shape of data captured
 
             data_queue.put(array)  # puts the queue into array
             
@@ -81,7 +82,7 @@ def data_capture():
     except KeyboardInterrupt:
         stop_event.set()
     finally:
-        data_queue.put(None)  # signal sender threads exit
+        data_queue.put(None)  # signal sender threads to exit
         print("Capture thread done.")
 
 def data_sender():
@@ -91,7 +92,7 @@ def data_sender():
             data_array = data_queue.get()
             if data_array is None:
                 break
-            print(f"Sending data: {data_array.shape}")  # prints shape of data being sent
+            print(f"Sending data shape: {data_array.shape}")  # prints shape of data being sent
             UDP.send_data(data_array)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
