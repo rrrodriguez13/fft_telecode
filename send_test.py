@@ -35,9 +35,14 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
-clock = time.strptime('00:01:00,000'.split(',')[0],'%H:%M:%S')
-datetime.timedelta(hours=clock.tm_hour,minutes=clock.tm_min,seconds=clock.tm_sec).total_seconds()
-60.0
+def format_time(seconds):
+    # Convert seconds to a timedelta object
+    delta = datetime.timedelta(seconds=seconds)
+    # Get the hours, minutes, and seconds from the timedelta
+    hours, remainder = divmod(delta.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    # Format the time as HH:MM:SS
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}"
 
 def data_capture():
     try:
@@ -46,19 +51,26 @@ def data_capture():
 
         while not stop_event.is_set():
             lst = np.arange(a, b) # list of integers to attach to data
-            t1 = time.time(clock)
+            t1 = time.time()
             data = sdr.capture_data(num_samples) # data
-            t2 = time.time(clock)
-            data.shape = (-1, 2)
-            i = data[:, 0]
-            q = data[:, 1]
+            t2 = time.time()
+            elapsed_time = t2 - t1 # calculates the time difference
+            
+            data.shape = (-1, 2) # data shape
+            i = data[:, 0] # first column
+            q = data[:, 1] # second column
             data = i + 1j*q
-            #print(lst.shape)
-            #print(data.shape)
-            print("time before capture:", t1, "\n time after capture:", t2)
+
+            # prints t1 and t2 in HH:MM:SS format
+            print("t1:", format_time(t1))
+            print("t2:", format_time(t2))
+            print("Elapsed time:", format_time(elapsed_time))
             array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
-            data_queue.put(array)
+
+            data_queue.put(array) # puts the queue into array
+            
+            # adds num_samples to continue collection past one sample packet size
             a += num_samples
             b += num_samples
     except KeyboardInterrupt:
