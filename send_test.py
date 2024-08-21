@@ -35,38 +35,20 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
-def format_time(seconds):
-    # Start with the base date for calculations (epoch start)
-    base_date = datetime.datetime(1970, 1, 1)
-    # Calculate the datetime by adding the timedelta
-    delta = datetime.timedelta(seconds=seconds)
-    result_date = base_date + delta
+def format_time(t1, t2):
+    # Calculate the difference in seconds
+    delta = t2 - t1
+    total_seconds = delta.total_seconds()
 
-    # Extract the components
-    years = result_date.year - base_date.year
-    months = result_date.month - base_date.month
-    days = result_date.day - base_date.day
-    hours = result_date.hour
-    minutes = result_date.minute
-    seconds = result_date.second
-    milliseconds = result_date.microsecond // 1000
-    microseconds = result_date.microsecond % 1000
-    nanoseconds = int((delta.total_seconds() - int(delta.total_seconds())) * 1e9 % 1000)
+    # Extract components from the timedelta
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, remainder = divmod(remainder, 60)
+    seconds, milliseconds = divmod(remainder, 1)
+    milliseconds, microseconds = divmod(milliseconds * 1e3, 1)
+    microseconds, nanoseconds = divmod(microseconds * 1e3, 1)
 
-    # Adjust months and years if needed
-    if months < 0:
-        years -= 1
-        months += 12
-    if days < 0:
-        months -= 1
-        # Adjust for previous month's days
-        prev_month = result_date - datetime.timedelta(days=result_date.day)
-        days += prev_month.day
-    
-    # Format the time as Y:M:D:H:M:S.mmmuuuunnn
-    return (f"{years}Y:{months}M:{days}D:"
-            f"{hours:02}:{minutes:02}:{seconds:02}."
-            f"{milliseconds:03}{microseconds:03}{nanoseconds:03}")
+    # Format the time as HH:MM:SS.mmmuuuunnn
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
 
 def data_capture():
     try:
@@ -78,7 +60,7 @@ def data_capture():
             t1 = time.time()
             data = sdr.capture_data(num_samples) # data
             t2 = time.time()
-            elapsed_time = t2 - t1 # calculates the time difference
+            time_diff = t2 - t1 # calculates the time difference
             
             data.shape = (-1, 2) # data shape
             i = data[:, 0] # first column
@@ -88,7 +70,7 @@ def data_capture():
             # prints t1 and t2 in HH:MM:SS format
             print("t1:", format_time(t1))
             print("t2:", format_time(t2))
-            print("Elapsed time:", format_time(elapsed_time))
+            print("Elapsed time:", format_time(time_diff))
             array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
 
