@@ -71,10 +71,10 @@ def data_capture():
             time_diff = t2 - t1
 
             # prints elapsed time between recorded times
-            print(f"t1 (seconds elapsed): {t1:.2f}")
-            print(f"t2 (seconds elapsed): {t2:.2f}")
+            print(f"t1 (seconds elapsed): {t1:.5f}")
+            print(f"t2 (seconds elapsed): {t2:.5f}")
             print("")
-            print("Time Difference: {:.2f}".format(time_diff))  # prints difference in recorded times
+            print("Time Difference: {:.5f}".format(time_diff))  # prints difference in recorded times
             print("")
 
             array = np.vstack((lst, data))  # array defined as 2 columns for integers and data
@@ -102,7 +102,7 @@ def data_sender():
             print("")
             UDP.send_data(data_array)
             cnt += 1
-            print(f"Sent Data! cnt={cnt}")
+            print(f"Sent Data! [cnt={cnt}]")
             print("")
     except Exception as e:
         print(f"Error in data_sender: {e}")
