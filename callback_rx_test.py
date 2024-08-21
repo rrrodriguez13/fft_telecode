@@ -8,7 +8,7 @@ from networking import UdpReceive, NUM_SAMPLES
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
 PORTS = [6373, 6372] # using different ports for easy identification
-DATA_QUEUE_SIZE = 100
+DATA_QUEUE_SIZE = 10000
 
 BLOCKS_PER_FILE = 128
 
@@ -63,6 +63,7 @@ def process_data(ip, verbose=True):
             if cnt >= BLOCKS_PER_FILE:
                 if verbose:
                     print(f"Writing file {track_files}")
+                    print(f"Current Queue Size {data_queues[ip].qsize()}")
                 track_files += 1
                 writeto(data, prefix1, folder1, track_files)
                 cnt = 0
