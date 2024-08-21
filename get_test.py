@@ -17,7 +17,7 @@ data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 stop_event = threading.Event()
 
-def data_receiver(ip, port):
+def receive_data(ip, port):
     UDP = UdpReceive(ip, port)
     UDP.eth0()
     print(f'Listening on {ip}:{port} ...')
@@ -34,7 +34,7 @@ def data_receiver(ip, port):
         data_queues[ip].put(None)  # Signal to stop processing
         print(f'Receiver for {ip} done.')
 
-def data_processor(ip):
+def process_data(ip):
     folder1 = 'num_output' # creates output folder for numbered list
     folder2 = 'data_output' # creates output folder for actual data
     prefix1 = 'num' # prefix for numbered list
@@ -118,8 +118,8 @@ def plot_data():
         print('Plotting done.')
 
 if __name__ == "__main__":
-    receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
-    processor_threads = [threading.Thread(target=data_processor, args=(ip,)) for ip in IP_ADDRESSES]
+    receiver_threads = [threading.Thread(target=receive_data, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
+    processor_threads = [threading.Thread(target=process_data, args=(ip,)) for ip in IP_ADDRESSES]
     plotting_thread = [threading.Thread(target=plot_data)]
 
     for thread in receiver_threads:

@@ -72,7 +72,7 @@ class receive:
         self.s.close()
 
 def writeto(data, prefix, folder, track_files):
-    filepath = os.path.join(folder, f'{prefix}_{track_files}.npz')
+    filepath = os.path.join(folder, f'{prefix}_{track_files:05d}.npz')
     np.savez(filepath, data=data) # saves data to output folder
 
 def perform_power(signal):
