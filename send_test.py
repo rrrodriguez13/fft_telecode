@@ -4,7 +4,7 @@ import threading
 import queue
 import ugradio
 import numpy as np
-from functions_test import send, format_time
+from networking import UdpSend
 import time
 
 # arguments for when observing
@@ -29,7 +29,7 @@ if not os.path.exists(folder):
 sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=10)
 
 # sets up network connection
-UDP = send(LAPTOP_IP, PORT)
+UDP = UdpSend(LAPTOP_IP, PORT)
 
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
