@@ -71,10 +71,10 @@ def data_capture():
             time_diff = t2 - t1
 
             # prints elapsed time between recorded times
-            print(f"t1 (seconds elapsed): {t1:.5f}")
-            print(f"t2 (seconds elapsed): {t2:.5f}")
+            print(f"t1 (seconds elapsed): {t1:.6f}")
+            print(f"t2 (seconds elapsed): {t2:.6f}")
             print("")
-            print("Time Difference: {:.5f}".format(time_diff))  # prints difference in recorded times
+            print("Time Difference: {:.6f}".format(time_diff))  # prints difference in recorded times
             print("")
 
             array = np.vstack((lst, data))  # array defined as 2 columns for integers and data
