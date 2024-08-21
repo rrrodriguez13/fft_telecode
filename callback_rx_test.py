@@ -3,12 +3,14 @@ import queue
 import os
 import numpy as np
 from functions_test import writeto
-from networking import UdpReceive
+from networking import UdpReceive, NUM_SAMPLES
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
 PORTS = [6373, 6372] # using different ports for easy identification
 DATA_QUEUE_SIZE = 100
+
+BLOCKS_PER_FILE = 128
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 stop_event = threading.Event()
@@ -30,7 +32,7 @@ def receive_data(ip, port):
         data_queues[ip].put(None)  # Signal to stop processing
         print(f'Receiver for {ip} done.')
 
-def process_data(ip):
+def process_data(ip, verbose=True):
     folder1 = 'num_output' # creates output folder for numbered list
     folder2 = 'data_output' # creates output folder for actual data
     prefix1 = 'num' # prefix for numbered list
@@ -44,20 +46,26 @@ def process_data(ip):
         os.makedirs(folder2)
 
     try:
+        data = np.empty((BLOCKS_PER_FILE, NUM_SAMPLES, 2), dtype='int8')
+        cnt = 0
         while True:
-            data = data_queues[ip].get()
+            d = data_queues[ip].get()
             if data is None:
                 print("No data received.")
                 break
 
-            signal = np.frombuffer(data, dtype=np.int8)
-            #print(signal.shape)
+            signal = np.frombuffer(d, dtype=np.int8)
             signal.shape = (-1, 2)
-            print(f"Data shape for {ip}: {signal.shape}")
+            data[cnt] = signal
+            cnt += 1
 
             # Save the data to a file
-            track_files += 1
-            writeto(signal, prefix1, folder1, track_files)
+            if cnt >= BLOCKS_PER_FILE:
+                if verbose:
+                    print(f"Writing file {track_files}")
+                track_files += 1
+                writeto(data, prefix1, folder1, track_files)
+                cnt = 0
 
             data_queues[ip].task_done()
     except Exception as e:
