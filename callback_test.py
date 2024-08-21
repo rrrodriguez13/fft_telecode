@@ -1,14 +1,18 @@
 #import ugradio
 import numpy as np
 import sdr_stream
+import os
 
 cnt = 0
 
 def file_writer(dev_id, shape, data):
     global cnt
+    folder = 'output'
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     filename = f'sdr_data{cnt:03d}.npz'
     print(f'Saving data to {filename}')
-    np.savez(filename, data=data)
+    np.savez(filename, folder, data=data)
     cnt += 1
     
 sdr = sdr_stream.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=10)
