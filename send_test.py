@@ -5,6 +5,7 @@ import queue
 import ugradio
 import numpy as np
 from functions_test import send
+import datetime
 import time
 
 # arguments for when observing
@@ -34,6 +35,10 @@ UDP = send(LAPTOP_IP, PORT)
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
+clock = time.strptime('00:01:00,000'.split(',')[0],'%H:%M:%S')
+datetime.timedelta(hours=clock.tm_hour,minutes=clock.tm_min,seconds=clock.tm_sec).total_seconds()
+60.0
+
 def data_capture():
     try:
         a = 0
@@ -41,9 +46,9 @@ def data_capture():
 
         while not stop_event.is_set():
             lst = np.arange(a, b) # list of integers to attach to data
-            t1 = time.time()
+            t1 = time.time(clock)
             data = sdr.capture_data(num_samples) # data
-            t2 = time.time()
+            t2 = time.time(clock)
             data.shape = (-1, 2)
             i = data[:, 0]
             q = data[:, 1]
