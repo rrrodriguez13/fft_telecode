@@ -36,7 +36,7 @@ data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
 def format_time(seconds_elapsed):
-    # Extracts components from total seconds
+    # Extract components from total seconds
     hours, remainder = divmod(seconds_elapsed, 3600)
     minutes, remainder = divmod(remainder, 60)
     seconds, milliseconds = divmod(remainder, 1)
@@ -51,7 +51,7 @@ def data_capture():
         a = 0
         b = num_samples
         
-        # captures the start time of starting data collection program 
+        # Capture the start time of the data collection
         t_start = time.time()
 
         while not stop_event.is_set():
@@ -59,7 +59,7 @@ def data_capture():
             
             # calculates t1 and t2 as the time elapsed since t_start
             t1 = time.time() - t_start
-            data = sdr.capture_data(num_samples)  # data collection
+            data = sdr.capture_data(num_samples)  # data
             t2 = time.time() - t_start
             
             data.shape = (-1, 2)  # data shape
@@ -67,10 +67,16 @@ def data_capture():
             q = data[:, 1]  # second column
             data = i + 1j*q
 
-            # prints recorded elapsed time since the start of data collection
-            print(f"t1 (seconds elapsed): {t1}") # seconds recorded before collection
-            print(f"t2 (seconds elapsed): {t2}") # seconds recorded after collection
-            print("Time Difference:", format_time(t2 - t1))  # uses format_time to show the time difference
+            # calculates the time difference
+            time_diff = t2 - t1
+
+            # prints elapsed time between recorded times
+            print(f"t1 (seconds elapsed): {t1:.2f}")
+            print(f"t2 (seconds elapsed): {t2:.2f}")
+            print("")
+            print("Time Difference: {:.2f}".format(time_diff))  # prints difference in recorded times
+            print("")
+
             array = np.vstack((lst, data))  # array defined as 2 columns for integers and data
             print(f"Captured data shape: {array.shape}")  # prints shape of data captured
 
@@ -93,9 +99,11 @@ def data_sender():
             if data_array is None:
                 break
             print(f"Sending data shape: {data_array.shape}")  # prints shape of data being sent
+            print("")
             UDP.send_data(data_array)
             cnt += 1
             print(f"Sent Data! cnt={cnt}")
+            print("")
     except Exception as e:
         print(f"Error in data_sender: {e}")
     finally:
