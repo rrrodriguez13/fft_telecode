@@ -19,7 +19,6 @@ len_obs = int(args.len_obs)
 folder = args.folder
 
 LAPTOP_IP = "10.10.10.30"
-PORT = 6373
 num_samples = 2048
 
 if not os.path.exists(folder):
@@ -29,7 +28,7 @@ if not os.path.exists(folder):
 sdr = ugradio.sdr.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=10)
 
 # sets up network connection
-UDP = UdpSend(LAPTOP_IP, PORT)
+UDP = UdpSend(LAPTOP_IP)
 
 data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
