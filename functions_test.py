@@ -23,54 +23,6 @@ def format_time(seconds_elapsed):
     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
 """
 
-# Networking classes
-class send:
-    def __init__(self, HOST, PORT):
-        self.HOST = HOST
-        self.PORT = PORT
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    
-    def stop(self):
-        self.s.close()
-    
-    def eth0(self):
-        self.s.connect((self.HOST, self.PORT))
-        print('eth0 starting...')
-        print(f'Yelling on port {self.HOST}')
-        
-    def send_data(self, data):
-        data = np.array(data, dtype=np.int8)
-        data = np.ravel(data).tobytes()  # Flatten data and ensure data is bytes
-        chunks = [data]  # sends all data in chunks
-        for i, chunk in enumerate(chunks):
-            self.s.sendto(chunk, (self.HOST, self.PORT))
-            print(f'Sent chunk {i+1}/{len(chunks)} of size {len(chunk)}')
-
-class receive:
-    def __init__(self, HOST, PORT):
-        self.HOST = HOST
-        self.PORT = PORT
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.settimeout(5)
-        
-    def eth0(self):
-        # Bind to all interfaces
-        self.s.bind(('', self.PORT))
-        print(f'Listening on port {self.PORT} ...')
-    
-    def set_up(self):
-        try:
-            print('Searching for data ...')
-            data, addr = self.s.recvfrom(2*num_samples)
-            print('Received data!\n')
-            return data
-        except socket.timeout:
-            print('No data received, waiting for next packet ...')
-            print("\n")
-        
-    def stop(self):
-        self.s.close()
-
 def writeto(data, prefix, folder, track_files):
     filepath = os.path.join(folder, f'{prefix}_{track_files:05d}.npz')
     np.savez(filepath, data=data) # saves data to output folder

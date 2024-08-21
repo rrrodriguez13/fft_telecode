@@ -32,26 +32,30 @@ class UdpSend:
         self.s.sendto(chunk, (self.host, self.port))
 
 class UdpReceive:
-    def __init__(self, host, port=PORT):
+    def __init__(self, host, port=PORT, verbose=False):
         self.host = host
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.settimeout(5)
+        self.verbose = verbose
         
     def eth0(self):
         # Bind to all interfaces
         self.s.bind(('', self.port))
-        print(f'Listening on port {self.port} ...')
+        if self.verbose:
+            print(f'Listening on port {self.port} ...')
     
     def set_up(self):
         try:
-            print('Searching for data ...')
+            if self.verbose:
+                print('Searching for data ...')
             data, addr = self.s.recvfrom(2*NUM_SAMPLES)
-            print('Received data!\n')
+            if self.verbose:
+                print('Received data!\n')
             return data
         except socket.timeout:
-            print('No data received, waiting for next packet ...')
-            print("\n")
+            if self.verbose:
+                print('No data received, waiting for next packet ...\n')
         
     def stop(self):
         self.s.close()
