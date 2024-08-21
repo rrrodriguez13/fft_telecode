@@ -50,7 +50,8 @@ def data_capture():
             data = i + 1j*q
             #print(lst.shape)
             #print(data.shape)
-            array = np.vstack((lst, data, t1, t2)) # array defined as 2 columns for integers and data
+            print("time before capture:", t1, "\n time after capture:", t2)
+            array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
             a += num_samples
