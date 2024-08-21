@@ -36,11 +36,11 @@ data_queue = queue.Queue(maxsize=0)  # infinite size queue to prevent data loss
 stop_event = threading.Event()
 
 def format_time(t1, t2):
-    # Calculate the difference in seconds
+    # calculates the difference in seconds
     delta = t2 - t1
-    total_seconds = delta.total_seconds()
+    total_seconds = delta
 
-    # Extract components from the timedelta
+    # extracts components from total seconds
     hours, remainder = divmod(total_seconds, 3600)
     minutes, remainder = divmod(remainder, 60)
     seconds, milliseconds = divmod(remainder, 1)
@@ -56,25 +56,24 @@ def data_capture():
         b = num_samples
 
         while not stop_event.is_set():
-            lst = np.arange(a, b) # list of integers to attach to data
+            lst = np.arange(a, b)  # list of integers to attach to data
             t1 = time.time()
-            data = sdr.capture_data(num_samples) # data
+            data = sdr.capture_data(num_samples)  # data
             t2 = time.time()
-            time_diff = t2 - t1 # calculates the time difference
             
-            data.shape = (-1, 2) # data shape
-            i = data[:, 0] # first column
-            q = data[:, 1] # second column
+            data.shape = (-1, 2)  # data shape
+            i = data[:, 0]  # first column
+            q = data[:, 1]  # second column
             data = i + 1j*q
 
-            # prints t1 and t2 in HH:MM:SS format
-            print("t1:", format_time(t1))
-            print("t2:", format_time(t2))
-            print("Elapsed time:", format_time(time_diff))
-            array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
-            print(f"Captured data: {array.shape}") # prints shape of data captured
+            # prints t1 and t2 as floating point numbers
+            print("t1:", t1)
+            print("t2:", t2)
+            print("Elapsed time:", format_time(t1, t2))  # uses format_time to show the elapsed time
+            array = np.vstack((lst, data))  # array defined as 2 columns for integers and data
+            print(f"Captured data: {array.shape}")  # prints shape of data captured
 
-            data_queue.put(array) # puts the queue into array
+            data_queue.put(array)  # puts the queue into array
             
             # adds num_samples to continue collection past one sample packet size
             a += num_samples
@@ -82,7 +81,7 @@ def data_capture():
     except KeyboardInterrupt:
         stop_event.set()
     finally:
-        data_queue.put(None)  # signal sender threads to exit
+        data_queue.put(None)  # signal sender threads exit
         print("Capture thread done.")
 
 def data_sender():
