@@ -2,6 +2,7 @@ import numpy as np
 import socket
 
 PORT = 6373
+NUM_SAMPLES = 2048
 
 # Networking classes
 class UdpSend:
@@ -45,7 +46,7 @@ class UdpReceive:
     def set_up(self):
         try:
             print('Searching for data ...')
-            data, addr = self.s.recvfrom(2*num_samples)
+            data, addr = self.s.recvfrom(2*NUM_SAMPLES)
             print('Received data!\n')
             return data
         except socket.timeout:

@@ -18,7 +18,7 @@ import networking
 
 IP = '10.10.10.30'
 
-UDP = UdpSend(IP)
+UDP = networking.UdpSend(IP)
 
 def udp_sender(dev_id, shape, data):
     UDP.send_data(data)

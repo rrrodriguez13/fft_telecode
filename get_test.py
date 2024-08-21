@@ -3,7 +3,8 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions_test import receive, writeto, initialize_plots, update_plot, correlate_and_plot
+from functions_test import writeto, initialize_plots, update_plot, correlate_and_plot
+from networking import UdpReceive
 
 num_samples = 2048
 
@@ -17,7 +18,7 @@ plot_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
 stop_event = threading.Event()
 
 def data_receiver(ip, port):
-    UDP = receive(ip, port)
+    UDP = UdpReceive(ip, port)
     UDP.eth0()
     print(f'Listening on {ip}:{port} ...')
 
