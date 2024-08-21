@@ -50,11 +50,11 @@ def data_processor(ip):
         while True:
             data = data_queues[ip].get()
             if data is None:
-                print("No data received. You suck!")
+                print("No data received. Do better.")
                 break
 
             signal = np.frombuffer(data, dtype=np.int8)
-            print(signal.shape)
+            #print(signal.shape)
             signal.shape = (2, -1)
             print(f"Data shape for {ip}: {signal.shape}")
 
@@ -90,7 +90,7 @@ def plot_data():
                     if item is None:
                         continue
 
-                    signal, counters = item
+                    signal, track_files = item  # Unpack the signal and track_files from the item tuple
                     try:
                         update_plot(signal, fig, lines[IP_ADDRESSES.index(ip)])
                         last_signal[ip] = signal
@@ -107,15 +107,14 @@ def plot_data():
                 ip1, ip2 = IP_ADDRESSES[:2]
                 if last_signal[ip1] is not None and last_signal[ip2] is not None:
                     correlate_and_plot(last_signal[ip1], last_signal[ip2], fig, axs)
-
+            
+            # This pause causes the live plotter to close for some reason
             #plt.pause(0.01)  # Small pause to update the plots in real-time
-            # *This plt.pause seems to break one of the threads*
 
     except KeyboardInterrupt:
         print('Plotting interrupted.')
     finally:
         print('Plotting done.')
-
 
 if __name__ == "__main__":
     receiver_threads = [threading.Thread(target=data_receiver, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]

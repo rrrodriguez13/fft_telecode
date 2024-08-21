@@ -5,6 +5,7 @@ import queue
 import ugradio
 import numpy as np
 from functions_test import send
+import time
 
 # arguments for when observing
 parser = argparse.ArgumentParser()
@@ -35,20 +36,21 @@ stop_event = threading.Event()
 
 def data_capture():
     try:
-
         a = 0
         b = num_samples
 
         while not stop_event.is_set():
             lst = np.arange(a, b) # list of integers to attach to data
+            t1 = time.time()
             data = sdr.capture_data(num_samples) # data
+            t2 = time.time()
             data.shape = (-1, 2)
             i = data[:, 0]
             q = data[:, 1]
             data = i + 1j*q
             #print(lst.shape)
-            print(data.shape)
-            array = np.vstack((lst, data)) # array defined as 2 columns for integers and data
+            #print(data.shape)
+            array = np.vstack((lst, data, t1, t2)) # array defined as 2 columns for integers and data
             print(f"Captured data: {array.shape}") # prints shape of data captured
             data_queue.put(array)
             a += num_samples
