@@ -59,8 +59,8 @@ def data_capture():
             time_diff = t2 - t1
 
             # prints elapsed time between recorded times
-            print(f"t1 (seconds elapsed): {t1:.6f}, seconds")
-            print(f"t2 (seconds elapsed): {t2:.6f}, seconds")
+            print(f"t1 (seconds elapsed): {t1:.6f} seconds")
+            print(f"t2 (seconds elapsed): {t2:.6f} seconds")
             print("")
             print("Time Difference: {:.6f} seconds".format(time_diff))  # prints difference in recorded times
             print("")

@@ -22,6 +22,7 @@ def format_time(seconds_elapsed):
     # Format the time as HH:MM:SS.mmmuuuunnn
     return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
 """
+
 # Networking classes
 class send:
     def __init__(self, HOST, PORT):
