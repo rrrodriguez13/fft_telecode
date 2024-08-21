@@ -9,6 +9,19 @@ sample_rate = 2.2e6
 center_freq = 145.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 
+"""
+# clock formatting
+def format_time(seconds_elapsed):
+    # Extract components from total seconds
+    hours, remainder = divmod(seconds_elapsed, 3600)
+    minutes, remainder = divmod(remainder, 60)
+    seconds, milliseconds = divmod(remainder, 1)
+    milliseconds, microseconds = divmod(milliseconds * 1e3, 1)
+    microseconds, nanoseconds = divmod(microseconds * 1e3, 1)
+
+    # Format the time as HH:MM:SS.mmmuuuunnn
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
+"""
 # Networking classes
 class send:
     def __init__(self, HOST, PORT):
