@@ -1,6 +1,7 @@
 import threading
 import queue
 import os
+import time
 import numpy as np
 from functions_test import writeto
 from networking import UdpReceive, NUM_SAMPLES
@@ -20,95 +21,50 @@ def receive_data(ip, port):
     UDP.eth0()
     print(f'Listening on {ip}:{port} ...')
 
+    q = data_queues[ip]
     try:
         while not stop_event.is_set():
-            data = UDP.set_up()
+            data = UDP.get_data()
             if data: 
-                data_queues[ip].put(data)
+                q.put(data)
     except KeyboardInterrupt:
         print(f'Data receiver for {ip} interrupted.')
     finally:
         UDP.stop()
-        data_queues[ip].put(None)  # Signal to stop processing
+        q.put(None)  # Signal to stop processing
         print(f'Receiver for {ip} done.')
 
 def process_data(ip, verbose=True):
-<<<<<<< HEAD
     folder = 'output' # creates output folder for numbered list
     prefix = 'data' # prefix for numbered list
-=======
-    folder1 = 'num_output' # creates output folder for numbered list
-    folder2 = 'data_output' # creates output folder for actual data
-    prefix1 = 'num' # prefix for numbered list
-    prefix2 = 'data' # prefix for data
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
     track_files = 0  # counter for the number of files saved
 
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    if not os.path.exists(folder2):
-        os.makedirs(folder2)
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    if not os.path.exists(folder2):
-        os.makedirs(folder2)
-
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+    q = data_queues[ip]
     try:
-        data = np.empty((BLOCKS_PER_FILE, NUM_SAMPLES, 2), dtype='int8')
         cnt = 0
         while True:
-            d = data_queues[ip].get()
-            if data is None:
+            if q.qsize() < BLOCKS_PER_FILE:
+                time.sleep(0.1)
+                continue
+            d = b''.join([q.get() for i in range(BLOCKS_PER_FILE)])
+            if d is None:
                 print("No data received.")
                 break
 
-            signal = np.frombuffer(d, dtype=np.int8)
-            signal.shape = (-1, 2)
-            data[cnt] = signal
-            cnt += 1
+            data = np.frombuffer(d, dtype=np.int8)
+            data.shape = (BLOCKS_PER_FILE, -1, 2)
 
             # Save the data to a file
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
             if verbose:
                 print(f"Writing file {track_files}")
                 print(f"Current Queue Size {q.qsize()}")
             track_files += 1
             writeto(data, prefix, folder, track_files)
-=======
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-            if cnt >= BLOCKS_PER_FILE:
-                if verbose:
-                    print(f"Writing file {track_files}")
-                    print(f"Current Queue Size {data_queues[ip].qsize()}")
-                track_files += 1
-                writeto(data, prefix1, folder1, track_files)
-                cnt = 0
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
-=======
->>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
 
-            data_queues[ip].task_done()
+            q.task_done()
     except Exception as e:
         print(f'Error in data processor for {ip}: {e}')
     finally:
