@@ -22,7 +22,7 @@ class UdpSend:
             print(f'Yelling on port {self.host}')
         
     def send_data(self, data):
-        assert data.ndim == 2
+        assert data.ndim >= 2
         for i in range(data.shape[0]):
             self.send_bytes(data[i].tobytes())
             if self.verbose:
@@ -37,6 +37,7 @@ class UdpReceive:
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.settimeout(5)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)
         self.verbose = verbose
         
     def eth0(self):
@@ -45,7 +46,7 @@ class UdpReceive:
         if self.verbose:
             print(f'Listening on port {self.port} ...')
     
-    def set_up(self):
+    def get_data(self):
         try:
             if self.verbose:
                 print('Searching for data ...')
