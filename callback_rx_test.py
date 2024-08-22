@@ -7,7 +7,7 @@ from functions_test import writeto
 from networking import UdpReceive, NUM_SAMPLES
 
 # Configuration
-IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
+IP_ADDRESSES = "10.10.10.60", "10.10.10.50"
 PORT = 6373 # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 
@@ -60,7 +60,7 @@ def process_data(ip, verbose=True):
             # Save the data to a file
             if verbose:
                 print(f"Writing file {track_files}")
-                print(f"Current Queue Size {q.qsize()}")
+                print(f"Current Queue Size {q.qsize()}, {ip=}")
             track_files += 1
             writeto(data, prefix, folder, track_files)
 
