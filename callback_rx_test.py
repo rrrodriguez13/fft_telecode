@@ -35,12 +35,12 @@ def receive_data(ip, port):
         print(f'Receiver for {ip} done.')
 
 def process_data(ip, verbose=True):
-    folder1 = 'num_output' # creates output folder for numbered list
-    prefix1 = 'num' # prefix for numbered list
+    folder = 'output' # creates output folder for numbered list
+    prefix = 'data' # prefix for numbered list
     track_files = 0  # counter for the number of files saved
 
-    if not os.path.exists(folder1):
-        os.makedirs(folder1)
+    if not os.path.exists(folder):
+        os.makedirs(folder)
 
     q = data_queues[ip]
     try:
@@ -62,7 +62,7 @@ def process_data(ip, verbose=True):
                 print(f"Writing file {track_files}")
                 print(f"Current Queue Size {q.qsize()}")
             track_files += 1
-            writeto(data, prefix1, folder1, track_files)
+            writeto(data, prefix, folder, track_files)
 
             q.task_done()
     except Exception as e:

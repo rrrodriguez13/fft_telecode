@@ -1,5 +1,4 @@
 import numpy as np
-import socket
 import matplotlib.pyplot as plt
 from scipy import signal
 import os
@@ -9,19 +8,6 @@ sample_rate = 2.2e6
 center_freq = 145.2e6
 freqs = np.fft.fftshift(np.fft.fftfreq(num_samples, 1/sample_rate) + center_freq)
 
-"""
-# clock formatting
-def format_time(seconds_elapsed):
-    # Extract components from total seconds
-    hours, remainder = divmod(seconds_elapsed, 3600)
-    minutes, remainder = divmod(remainder, 60)
-    seconds, milliseconds = divmod(remainder, 1)
-    milliseconds, microseconds = divmod(milliseconds * 1e3, 1)
-    microseconds, nanoseconds = divmod(microseconds * 1e3, 1)
-
-    # Format the time as HH:MM:SS.mmmuuuunnn
-    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
-"""
 
 def writeto(data, prefix, folder, track_files):
     filepath = os.path.join(folder, f'{prefix}_{track_files:05d}.npz')
@@ -36,7 +22,10 @@ def shift(signal):
 def correlate_signals(signal1, signal2):
     correlation = signal.correlate(signal1/np.std(signal1), signal2/np.std(signal2), mode='full') / min(len(signal1), len(signal2))
     return correlation
-    
+
+
+
+"""
 def initialize_plots(ip_addresses):
     plt.style.use('bmh')
     plt.ion() # live plotter
@@ -69,37 +58,15 @@ def update_plot(data, fig, line):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
-def correlate_and_plot(signal1, signal2, fig, axs):
-    # Ensure signals are the same length
-    if len(signal1) != len(signal2):
-        min_len = min(len(signal1), len(signal2))
-        signal1 = signal1[:min_len]
-        signal2 = signal2[:min_len]
-    
-    # Compute correlation
-    correlation = correlate_signals(signal1, signal2)
+# clock formatting
+def format_time(seconds_elapsed):
+    # Extract components from total seconds
+    hours, remainder = divmod(seconds_elapsed, 3600)
+    minutes, remainder = divmod(remainder, 60)
+    seconds, milliseconds = divmod(remainder, 1)
+    milliseconds, microseconds = divmod(milliseconds * 1e3, 1)
+    microseconds, nanoseconds = divmod(microseconds * 1e3, 1)
 
-    # Generate time lags for the x-axis
-    lags = np.arange(-len(signal1) + 1, len(signal1))
-    
-    # Access the correlation subplot
-    ax_corr = axs[-1]
-    
-    # Clear the correlation plot before plotting
-    ax_corr.clear()
-    
-    # Plot the correlation
-    ax_corr.plot(lags, correlation, linewidth=0.8, label='Correlated Signal', color='green')
-    ax_corr.set_title('Correlation of Signals')
-    ax_corr.set_xlabel('Time Lag')
-    ax_corr.set_ylabel('Amplitude [arbitrary]')
-    ax_corr.grid(True)
-    
-    # Optionally set y-axis limits if needed
-    # ax_corr.set_ylim(-50, 300)
-    
-    # Refresh the plot
-    fig.canvas.draw()
-    fig.canvas.flush_events()
-
-
+    # Format the time as HH:MM:SS.mmmuuuunnn
+    return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}.{int(milliseconds):03}{int(microseconds):03}{int(nanoseconds):03}"
+"""

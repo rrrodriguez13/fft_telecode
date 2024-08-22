@@ -3,7 +3,7 @@ import queue
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from functions_test import writeto, initialize_plots, update_plot, correlate_and_plot
+from fft_telescope.code1.testing_v5.functions_test import writeto, initialize_plots, update_plot, correlate_and_plot
 from networking import UdpReceive
 
 num_samples = 2048
