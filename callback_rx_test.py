@@ -41,6 +41,9 @@ def process_data(ip, verbose=True):
     folder2 = 'data_output' # creates output folder for actual data
     prefix1 = 'num' # prefix for numbered list
     prefix2 = 'data' # prefix for data
+<<<<<<< HEAD
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+=======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
     track_files = 0  # counter for the number of files saved
 
@@ -50,6 +53,12 @@ def process_data(ip, verbose=True):
     if not os.path.exists(folder2):
         os.makedirs(folder2)
 
+<<<<<<< HEAD
+=======
+    if not os.path.exists(folder2):
+        os.makedirs(folder2)
+
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
     try:
         data = np.empty((BLOCKS_PER_FILE, NUM_SAMPLES, 2), dtype='int8')
         cnt = 0
@@ -66,12 +75,15 @@ def process_data(ip, verbose=True):
 
             # Save the data to a file
 <<<<<<< HEAD
+<<<<<<< HEAD
             if verbose:
                 print(f"Writing file {track_files}")
                 print(f"Current Queue Size {q.qsize()}")
             track_files += 1
             writeto(data, prefix, folder, track_files)
 =======
+=======
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
             if cnt >= BLOCKS_PER_FILE:
                 if verbose:
                     print(f"Writing file {track_files}")
@@ -79,6 +91,9 @@ def process_data(ip, verbose=True):
                 track_files += 1
                 writeto(data, prefix1, folder1, track_files)
                 cnt = 0
+<<<<<<< HEAD
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+=======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
 
             data_queues[ip].task_done()
