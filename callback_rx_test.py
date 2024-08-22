@@ -8,7 +8,7 @@ from networking import UdpReceive, NUM_SAMPLES
 
 # Configuration
 IP_ADDRESSES = ["10.10.10.60", "10.10.10.50"]
-PORTS = 6373 # using different ports for easy identification
+PORT = 6373 # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 
 BLOCKS_PER_FILE = 128
@@ -72,7 +72,7 @@ def process_data(ip, verbose=True):
 
 
 if __name__ == "__main__":
-    receiver_threads = [threading.Thread(target=receive_data, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
+    receiver_threads = [threading.Thread(target=receive_data, args=(ip, PORT)) for ip in IP_ADDRESSES]
     processor_threads = [threading.Thread(target=process_data, args=(ip,)) for ip in IP_ADDRESSES]
 
     for thread in receiver_threads:
