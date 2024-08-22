@@ -42,6 +42,9 @@ def process_data(ip, verbose=True):
     prefix1 = 'num' # prefix for numbered list
     prefix2 = 'data' # prefix for data
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+=======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
 =======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
@@ -54,10 +57,13 @@ def process_data(ip, verbose=True):
         os.makedirs(folder2)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     if not os.path.exists(folder2):
         os.makedirs(folder2)
 
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+=======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
     try:
         data = np.empty((BLOCKS_PER_FILE, NUM_SAMPLES, 2), dtype='int8')
@@ -76,12 +82,15 @@ def process_data(ip, verbose=True):
             # Save the data to a file
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if verbose:
                 print(f"Writing file {track_files}")
                 print(f"Current Queue Size {q.qsize()}")
             track_files += 1
             writeto(data, prefix, folder, track_files)
 =======
+=======
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
 =======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
             if cnt >= BLOCKS_PER_FILE:
@@ -92,6 +101,9 @@ def process_data(ip, verbose=True):
                 writeto(data, prefix1, folder1, track_files)
                 cnt = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
+=======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
 =======
 >>>>>>> parent of 04291b3 (Added a socket option to make a bigger receive buffer to avoid packet loss. Also moved to chunking more packets together before generating numpy arrays. seems to work without packet loss now.)
