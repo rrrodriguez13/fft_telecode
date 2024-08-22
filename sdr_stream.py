@@ -61,6 +61,8 @@ def capture_data(sdrs, nsamples=2048, nblocks=1, callback=default_callback):
         is a numpy.ndarray of type int8 with shape (nblocks, nsamples)
         (direct == True) or (nblocks, nsamples, 2) (direct == False). 
     """
+    data = {}
+
     if isinstance(sdrs, SDR):
         sdrs = [sdrs]  # wrap a bare sdr object into a list, if provided
     loop = asyncio.new_event_loop()
@@ -73,12 +75,12 @@ def capture_data(sdrs, nsamples=2048, nblocks=1, callback=default_callback):
                 )  # closes sdr on exit
         asyncio.gather(*producers)  # cleanly exit the _streaming loops
     except KeyboardInterrupt:
-        print("\nKeyboardInterrupt received. Stopping streams...")
+        print("\n\nKeyboardInterrupt received. Stopping streams...\n")
         for sdr in sdrs:
             loop.run_until_complete(sdr.stop())
     finally:
         loop.run_until_complete(asyncio.gather(*producers, return_exceptions=True))
-        loop.close()
+        #loop.close()
     return data
 
 
