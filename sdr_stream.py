@@ -72,7 +72,12 @@ def capture_data(sdrs, nsamples=2048, nblocks=1, callback=default_callback):
                     _collate_streams(q, sdrs, nblocks, nsamples, callback)
                 )  # closes sdr on exit
         asyncio.gather(*producers)  # cleanly exit the _streaming loops
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt received. Stopping streams...")
+        for sdr in sdrs:
+            loop.run_until_complete(sdr.stop())
     finally:
+        loop.run_until_complete(asyncio.gather(*producers, return_exceptions=True))
         loop.close()
     return data
 
@@ -135,3 +140,21 @@ class SDR(RtlSdr):
         """
         data = capture_data(self, nsamples=nsamples, nblocks=nblocks)
         return data[self.device_index]
+
+# saving if isintance here before changes just in case
+'''
+    if isinstance(sdrs, SDR):
+        sdrs = [sdrs]  # wrap a bare sdr object into a list, if provided
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    q = asyncio.Queue()
+    try:
+        producers = [loop.create_task(_streaming(q, sdr, nsamples)) for sdr in sdrs]
+        data = loop.run_until_complete(
+                    _collate_streams(q, sdrs, nblocks, nsamples, callback)
+                )  # closes sdr on exit
+        asyncio.gather(*producers)  # cleanly exit the _streaming loops
+    finally:
+        loop.close()
+    return data
+'''

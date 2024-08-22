@@ -14,7 +14,7 @@ def udp_sender(dev_id, shape, data):
     global cnt
     UDP.send_data(data)
     print(f'Sent packet {cnt}')
-    #print(f'Number of blocks: {dev_id}')  # for debugging (should expect to print 0 consistently)
+    #print(f'Current queue size: {dev_id}')  # for debugging (should expect to print 0 consistently)
     cnt += 1
     
 sdr = sdr_stream.SDR(sample_rate=2.2e6, center_freq=145.2e6, direct=False, gain=10)
