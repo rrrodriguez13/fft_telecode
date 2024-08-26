@@ -74,8 +74,13 @@ def capture_data(sdrs, nsamples=2048, nblocks=1, callback=default_callback):
                     _collate_streams(q, sdrs, nblocks, nsamples, callback)
                 )  # closes sdr on exit
         asyncio.gather(*producers)  # cleanly exit the _streaming loops
+    except KeyboardInterrupt:
+        print("\n\nKeyboardInterrupt received. Stopping streams...\n")
+        for sdr in sdrs:
+            loop.run_until_complete(sdr.stop())
     finally:
-        loop.close()
+        loop.run_until_complete(asyncio.gather(*producers, return_exceptions=True))
+        #loop.close()
     return data
 
 
