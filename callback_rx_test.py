@@ -7,8 +7,8 @@ from functions_test import writeto
 from networking import UdpReceive, NUM_SAMPLES
 
 # Configuration
-IP_ADDRESSES = "10.10.10.60", "10.10.10.50"
-PORT = 6373 # using different ports for easy identification
+IP_ADDRESSES = ["10.10.10.50", "10.10.10.60", "10.10.10.70"]
+PORTS = [6372, 6373, 6374] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 
 BLOCKS_PER_FILE = 128
@@ -60,7 +60,7 @@ def process_data(ip, verbose=True):
             # Save the data to a file
             if verbose:
                 print(f"Writing file {track_files}")
-                print(f"Current Queue Size {q.qsize()}, {ip=}")
+                print(f"Current Queue Size {q.qsize()}")
             track_files += 1
             writeto(data, prefix, folder, track_files)
 
@@ -72,7 +72,7 @@ def process_data(ip, verbose=True):
 
 
 if __name__ == "__main__":
-    receiver_threads = [threading.Thread(target=receive_data, args=(ip, PORT)) for ip in IP_ADDRESSES]
+    receiver_threads = [threading.Thread(target=receive_data, args=(ip, port)) for ip, port in zip(IP_ADDRESSES, PORTS)]
     processor_threads = [threading.Thread(target=process_data, args=(ip,)) for ip in IP_ADDRESSES]
 
     for thread in receiver_threads:
