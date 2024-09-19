@@ -10,7 +10,6 @@ from networking import UdpReceive, NUM_SAMPLES
 IP_ADDRESSES = ["10.10.10.50", "10.10.10.60", "10.10.10.70"]
 PORTS = [6372, 6373, 6374] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
-
 BLOCKS_PER_FILE = 128
 
 data_queues = {ip: queue.Queue(maxsize=DATA_QUEUE_SIZE) for ip in IP_ADDRESSES}
@@ -22,6 +21,7 @@ def receive_data(ip, port):
     print(f'Listening on {ip}:{port} ...')
 
     q = data_queues[ip]
+
     try:
         while not stop_event.is_set():
             data = UDP.get_data()
@@ -35,7 +35,7 @@ def receive_data(ip, port):
         print(f'Receiver for {ip} done.')
 
 def process_data(ip, verbose=True):
-    folder = 'output' # creates output folder for numbered list
+    folder = f'output_{ip}' # creates output folder for numbered list
     prefix = 'data' # prefix for numbered list
     track_files = 0  # counter for the number of files saved
 
