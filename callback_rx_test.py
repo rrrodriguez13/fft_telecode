@@ -6,9 +6,9 @@ import numpy as np
 from functions_test import writeto
 from networking import UdpReceive, NUM_SAMPLES
 
-# Configuration
-IP_ADDRESSES = ["10.10.10.50", "10.10.10.60", "10.10.10.70"]
-PORTS = [6372, 6373, 6374] # using different ports for easy identification
+# configuration
+IP_ADDRESSES = ["10.10.10.40", "10.10.10.50", "10.10.10.60", "10.10.10.70"]
+PORTS = [6371, 6372, 6373, 6374] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 BLOCKS_PER_FILE = 128
 
@@ -57,7 +57,7 @@ def process_data(ip, verbose=True):
             data = np.frombuffer(d, dtype=np.int8)
             data.shape = (BLOCKS_PER_FILE, -1, 2)
 
-            # Save the data to a file
+            # saves data to a file
             if verbose:
                 print(f"Writing file {track_files}")
                 print(f"Current Queue Size {q.qsize()}")
@@ -65,6 +65,10 @@ def process_data(ip, verbose=True):
             writeto(data, prefix, folder, track_files)
 
             q.task_done()
+
+            # ensures clean break
+            if stop_event is set:
+                break
     except Exception as e:
         print(f'Error in data processor for {ip}: {e}')
     finally:
