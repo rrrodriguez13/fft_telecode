@@ -1,7 +1,7 @@
 import numpy as np
 import socket
 
-PORT = 6371
+PORT = 6372
 NUM_SAMPLES = 2048
 
 # Networking classes

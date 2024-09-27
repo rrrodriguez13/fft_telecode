@@ -8,7 +8,7 @@ from networking import UdpReceive, NUM_SAMPLES
 
 # configuration
 IP_ADDRESSES = ["10.10.10.40", "10.10.10.50", "10.10.10.60", "10.10.10.70"]
-PORTS = [6371, 6372, 6373, 6374] # using different ports for easy identification
+PORTS = [6372, 6373, 6374, 6375] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 BLOCKS_PER_FILE = 128
 
