@@ -37,7 +37,7 @@ class UdpReceive:
         self.port = port
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.settimeout(5)
-        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1024 * 1024)
+        self.s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2 * 1024 * 1024)
         self.verbose = verbose
         
     def eth0(self):
@@ -50,13 +50,19 @@ class UdpReceive:
         try:
             if self.verbose:
                 print('Searching for data ...')
-            data, addr = self.s.recvfrom(2*NUM_SAMPLES)
+            # Loop to receive data until the buffer is full
+            data = bytearray()
+            while len(data) < 2 * NUM_SAMPLES:
+                packet, addr = self.s.recvfrom(2 * NUM_SAMPLES)
+                data.extend(packet)
             if self.verbose:
                 print('Received data!\n')
             return data
         except socket.timeout:
             if self.verbose:
                 print('No data received, waiting for next packet ...\n')
+        return None
+
         
     def stop(self):
         self.s.close()
