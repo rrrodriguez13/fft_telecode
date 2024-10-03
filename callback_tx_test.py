@@ -6,7 +6,7 @@ import networking
 
 cnt = 0
 
-IP = '10.10.10.30'
+IP = '10.10.10.10'
 
 UDP = networking.UdpSend(IP)
 

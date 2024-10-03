@@ -35,7 +35,7 @@ def receive_data(ip, port):
         print(f'Receiver for {ip} done.')
 
 def process_data(ip, verbose=True):
-    folder = f'output2_{ip}' # creates output folder for numbered list
+    folder = f'output_{ip}' # creates output folder for numbered list
     prefix = 'data' # prefix for numbered list
     track_files = 0  # counter for the number of files saved
 
