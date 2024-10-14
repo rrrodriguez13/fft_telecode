@@ -7,8 +7,10 @@ from functions_test import writeto
 from networking import UdpReceive, NUM_SAMPLES
 
 # configuration
-IP_ADDRESSES = ["10.10.10.20", "10.10.10.30", "10.10.10.40", "10.10.10.50"]
-PORTS = [6372, 6373, 6374, 6375] # using different ports for easy identification
+IP_ADDRESSES = ["10.10.10.20", "10.10.10.30", "10.10.10.40", "10.10.10.50", "10.10.10.60", 
+                "10.10.10.70","10.10.10.80", "10.10.10.90", "10.10.10.100"]  # each pi has a unique static IP
+PORTS = [6372, 6373, 6374, 6375, 6376, 
+         6377, 6378, 6379, 6380] # using different ports for easy identification
 DATA_QUEUE_SIZE = 10000
 BLOCKS_PER_FILE = 128
 

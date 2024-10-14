@@ -1,7 +1,7 @@
 import numpy as np
 import socket
 
-PORT = 6372
+PORT = 6372 # replace with port cooresponding to static IP for pi in use
 NUM_SAMPLES = 2048
 
 # Networking classes
